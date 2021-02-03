@@ -2,7 +2,7 @@
 <html lang="zh">
   <head>
     <meta charset="UTF-8" />
-    <title>测试3d</title>
+    <title>绘制矩形-顶点索引</title>
     <!-- 顶点着色器源码 -->
     <script id="vertexShader" type="x-shader/x-vertex">
       //attribute声明vec3类型变量apos
@@ -38,48 +38,35 @@
         render(program, gl);
       }
       function render(program, gl) {
-        const position = [
-          -0.5,
-          0.5,
-          0.0,
-          0.5,
-          0.5,
-          0.0,
-          0.5,
-          -0.5,
-          0.0,
-          -0.5,
-          -0.5,
-          0.0,
-        ];
+        const position =new Float32Array([
+          -0.5,0.5,0.0,
+          0.5,0.5,0.0,
+          0.5,-0.5,0.0,
+          -0.5,-0.5,0.0
+        ]);
         const indexes = new Uint8Array([0, 1, 2, 0, 2, 3]);
+        //创建顶点缓冲区对象
         let vertexBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-        gl.bufferData(
-          gl.ARRAY_BUFFER,
-          new Float32Array(position),
-          gl.STATIC_DRAW
-        );
+        gl.bufferData(gl.ARRAY_BUFFER,position,gl.STATIC_DRAW);
 
-        //创建缓冲区对象
+        //创建索引缓冲区对象
         var indexesBuffer = gl.createBuffer();
         //绑定缓冲区对象
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexesBuffer);
         //索引数组indexes数据传入缓冲区
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indexes, gl.STATIC_DRAW);
 
-        gl.clearColor(0.0, 0.0, 0.0, 1.0);
-        gl.clear(gl.COLOR_BUFFER_BIT);
         
         var aposLocation = gl.getAttribLocation(program, "apos");
-        // gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
         gl.enableVertexAttribArray(aposLocation);
         gl.vertexAttribPointer(aposLocation, 3, gl.FLOAT, false, 0, 0);
 
-        //LINE_LOOP模式绘制前四个点
-        gl.drawElements(gl.TRIANGLES, 3, gl.UNSIGNED_BYTE, 0);
-        //LINE_LOOP模式从第五个点开始绘制四个点
-        gl.drawElements(gl.TRIANGLES, 3, gl.UNSIGNED_BYTE, 3);
+        
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+
+        gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_BYTE, 0);
       }
       //声明初始化着色器函数
       function initShader(gl, vertexShaderSource, fragmentShaderSource) {
