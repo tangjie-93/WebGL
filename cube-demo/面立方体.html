@@ -32,64 +32,65 @@
     <script>
         function init(){
              //通过getElementById()方法获取canvas画布
-            const canvas = document.getElementById('webgl');
+            var canvas = document.getElementById('webgl');
             //通过方法getContext()获取WebGL上下文
-            const gl = canvas.getContext('webgl');
+            var gl = canvas.getContext('webgl');
 
             //顶点着色器源码
-            const vertexShaderSource = document.getElementById('vertexShader').innerText;
+            var vertexShaderSource = document.getElementById('vertexShader').innerText;
 
             //片元着色器源码
-            const fragShaderSource = document.getElementById('fragmentShader').innerText;
+            var fragShaderSource = document.getElementById('fragmentShader').innerText;
             //初始化着色器
-            const program = initShader(gl, vertexShaderSource, fragShaderSource);
+            var program = initShader(gl, vertexShaderSource, fragShaderSource);
             render(gl, program)
         }
         function render(gl, program) {
             //获取顶点着色器的位置变量apos
-            const aposLocation = gl.getAttribLocation(program, 'apos');
+            var aposLocation = gl.getAttribLocation(program, 'apos');
             //创建立方体的顶点坐标数据
-            const data = new Float32Array([
-                //z为0.5时，xOy平面上的四个点坐标
-                0.5, 0.5, 0.5,
-                -0.5, 0.5, 0.5,
-                -0.5, -0.5, 0.5,
-                0.5, -0.5, 0.5,
-                //z为-0.5时，xOy平面上的四个点坐标
-                0.5, 0.5, -0.5,
-                -0.5, 0.5, -0.5,
-                -0.5, -0.5, -0.5,
-                0.5, -0.5, -0.5,
-                //上面两组坐标分别对应起来组成一一对
-                0.5, 0.5, 0.5,
-                0.5, 0.5, -0.5,
+            var data = new Float32Array([
+            -0.5, -0.5, 0.5, 1, 0, 0, 1,
+            0.5, -0.5, 0.5, 1, 0, 0, 1,
+            0.5, 0.5, 0.5, 1, 0, 0, 1,
+            -0.5, 0.5, 0.5, 1, 0, 0, 1,
+            
+            -0.5, 0.5, 0.5, 0, 1, 0, 1,
+            -0.5, 0.5, -0.5, 0, 1, 0, 1,
+            -0.5, -0.5, -0.5, 0, 1, 0, 1,
+            -0.5, -0.5, 0.5, 0, 1, 0, 1,
 
-                -0.5, 0.5, 0.5,
-                -0.5, 0.5, -0.5,
+            0.5, 0.5, 0.5, 0, 0, 1, 1,
+            0.5, -0.5, 0.5, 0, 0, 1, 1,
+            0.5, -0.5, -0.5, 0, 0, 1, 1,
+            0.5, 0.5, -0.5, 0, 0, 1, 1,
 
-                -0.5, -0.5, 0.5,
-                -0.5, -0.5, -0.5,
+            0.5, 0.5, -0.5, 1, 0, 1, 1,
+            0.5, -0.5, -0.5, 1, 0, 1, 1,
+            -0.5, -0.5, -0.5, 1, 0, 1, 1,
+            -0.5, 0.5, -0.5, 1, 0, 1, 1,
 
-                0.5, -0.5, 0.5,
-                0.5, -0.5, -0.5,
+            -0.5, 0.5, 0.5, 1, 1, 0, 1,
+            0.5, 0.5, 0.5, 1, 1, 0, 1,
+            0.5, 0.5, -0.5, 1, 1, 0, 1,
+            -0.5, 0.5, -0.5, 1, 1, 0, 1,
+
+            -0.5, -0.5, 0.5, 0, 1, 1, 1,
+            -0.5, -0.5, -0.5, 0, 1, 1, 1,
+            0.5, -0.5, -0.5, 0, 1, 1, 1,
+            0.5, -0.5, 0.5, 0, 1, 1, 1,
             ]);
-            //创建面缓冲区对象
-            const buffer = gl.createBuffer();
+            //创建缓冲区对象
+            var buffer = gl.createBuffer();
             //绑定缓冲区对象
             gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
             //顶点数组data数据传入缓冲区
             gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
 
             //缓冲区中的数据按照一定的规律传递给位置变量apos
-            gl.vertexAttribPointer(aposLocation, 3, gl.FLOAT, false, 4*7, 0);
+            gl.vertexAttribPointer(aposLocation, 3, gl.FLOAT, false, 0, 0);
             //允许数据传递
             gl.enableVertexAttribArray(aposLocation);
-
-
-            const indexBuffer=gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER,indexBuffer);
-
-
 
             tranlate(gl,program);
             //LINE_LOOP模式绘制前四个点
