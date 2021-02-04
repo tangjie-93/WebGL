@@ -32,15 +32,15 @@
     <script>
         function init(){
              //通过getElementById()方法获取canvas画布
-            const canvas = document.getElementById('webgl');
+            var canvas = document.getElementById('webgl');
             //通过方法getContext()获取WebGL上下文
-            const gl = canvas.getContext('webgl');
+            var gl = canvas.getContext('webgl');
 
             //顶点着色器源码
-            const vertexShaderSource = document.getElementById('vertexShader').innerText;
+            var vertexShaderSource = document.getElementById('vertexShader').innerText;
 
             //片元着色器源码
-            const fragShaderSource = document.getElementById('fragmentShader').innerText;
+            var fragShaderSource = document.getElementById('fragmentShader').innerText;
             //初始化着色器
             var program = initShader(gl, vertexShaderSource, fragShaderSource);
             initbuffer(gl, program);
@@ -50,7 +50,7 @@
              //获取顶点着色器的位置变量apos
              var aposLocation = gl.getAttribLocation(program, 'apos');
             //创建立方体的顶点坐标数据
-            const data = new Float32Array([
+            var data = new Float32Array([
                 //z为0.5时，xOy平面上的四个点坐标
                 0.5, 0.5, 0.5,
                 -0.5, 0.5, 0.5,
@@ -74,15 +74,15 @@
                 0.5, -0.5, 0.5,
                 0.5, -0.5, -0.5,
             ]);
-            //创建面缓冲区对象
-            const buffer = gl.createBuffer();
+            //创建缓冲区对象
+            var buffer = gl.createBuffer();
             //绑定缓冲区对象
             gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
             //顶点数组data数据传入缓冲区
             gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
 
             //缓冲区中的数据按照一定的规律传递给位置变量apos
-            gl.vertexAttribPointer(aposLocation, 3, gl.FLOAT, false, 4*7, 0);
+            gl.vertexAttribPointer(aposLocation, 3, gl.FLOAT, false, 0, 0);
             //允许数据传递
             gl.enableVertexAttribArray(aposLocation);
         }
@@ -94,6 +94,9 @@
             gl.drawArrays(gl.LINE_LOOP,4,4);
             //LINES模式绘制后8个点
             gl.drawArrays(gl.LINES,8,8);
+            requestAnimationFrame(()=>{
+                render(gl, program);
+            });
         }
         //声明初始化着色器函数
         function initShader(gl, vertexShaderSource, fragmentShaderSource) {
@@ -119,10 +122,10 @@
             const cos = Math.cos(rad);
             const sin = Math.sin(rad);
             const mxArr = new Float32Array([
-                1, 0, 0, 0, 0, cos, -sin, 0, 0, sin, cos, 0, 0, 0, 0, 1
+                1, 0, 0, 0,    0, cos, -sin, 0,    0, sin, cos, 0,    0, 0, 0, 1
             ])
             const myArr = new Float32Array([
-                cos, 0, -sin, 0, 0, 1, 0, 0, sin, 0, cos, 0, 0, 0, 0, 1
+                cos, 0, -sin, 0,    0, 1, 0, 0,   sin, 0, cos, 0,    0, 0, 0, 1
             ])
             gl.uniformMatrix4fv(mx, false, mxArr);
             gl.uniformMatrix4fv(my, false, myArr);
