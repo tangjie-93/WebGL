@@ -17,22 +17,11 @@
     <script type="shader-source" id="fragmentShader">
         void main(){
             // 根据片元的x坐标，来设置片元的像素值
-           
             // 片元沿着x方向渐变
             gl_FragColor = vec4(gl_FragCoord.x/500.0*1.0,0.0,0.0,1.0);
 		}
 	</script>
-    <script>
-//  if(gl_FragCoord.x < 300.0){
-//               // canvas画布上[0,300)之间片元像素值设置
-//               gl_FragColor = vec4(1.0,0.0,0.0,1.0);
-//             }else if (gl_FragCoord.x <= 400.0) {
-//               // canvas画布上(300,400]之间片元像素值设置
-//               gl_FragColor = vec4(0.0,1.0,0.0,1.0);
-//             }else {
-//               // canvas画布上(400,500]之间片元像素值设置
-//               gl_FragColor = vec4(0.0,0.0,1.0,1.0);
-//             }  
+    <script> 
     //获取canvas
     let canvas = document.getElementById('canvas');
     //获取绘图上下文

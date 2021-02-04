@@ -71,7 +71,6 @@ void main() {
 
 **`gl_PointCoord` 在片元着色器中的应用** 
 ```js
-
 precision lowp float;
 void main(){
     float r = distance(gl_PointCoord, vec2(0.5, 0.5));
@@ -91,7 +90,60 @@ void main(){
 </div>
 
 ### 5、gl_FragCoord
+内置变量 `gl_FragCoord` 表示 `WebGL` 在 `canvas` 画布上渲染的所有片元或者说像素的坐标。坐标原点是 `canvas` 画布的左上角，水平向右方向是 `x` 轴正向，竖直向下方向为 `y` 轴正方向。，`gl_FragCoord` 坐标的单位是像素，`gl_FragCoord` 的数据类型是`vec2`, 通过 `gl_FragCoord.x`、`gl_FragCoord.y` 可以分别访问片元坐标的纵横坐标。
 
+**`gl_FragCoord` 在片元着色器中的应用** 
+```js
+void main(){
+    // 根据片元的x坐标，来设置片元的像素值
+    if(gl_FragCoord.x < 200.0){
+        //默认为 canvas原来的颜色
+    }
+    else if (gl_FragCoord.x < 250.0) {
+        // canvas画布上[0,300)之间片元像素值设置
+        gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+    } else if (gl_FragCoord.x <= 300.0) {
+
+        // canvas画布上(300,400]之间片元像素值设置 绿色
+        gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
+    } else {
+        // canvas画布上(400,500]之间片元像素值设置 蓝色
+        gl_FragColor = vec4(0.0, 0.0, 1.0, 1.0);
+    }
+}
+```
+结果如下图所示：
+<img src="./images/gl_FragCoord.png" width='400' />
+
+
+
+## 2、attribute和uniform以及varying的区别
+`attribute` 和 `uniform` 关键字的目的主要是为了 `javascript` 语言可以通过相关的WebGL API把一些数据传递给着色器。而`varying` 主要是将顶点着色器中的数据传递给片元着色器。
+| 变量类型 | 数据传递方向 | 作用
+| ---- | ---- | ----
+| attribute  | 从js脚本中传递到顶点着色器 | 在顶点着色器中声明跟顶点相关的数据
+| uniform  | 从js脚本中传递到顶点、片元着色器 | 在着色器中声明非顶点数据(如光源位置数据、方向数据、矩阵数据)
+| varying  | 从顶点着色器传递到片元着色器 | 在顶点着色器中声明需要差值计算的顶点数据
+
+`varying`数据，需要同时在顶点着色器和片元着色器中声明。`varying` 类型变量主要是为了完成顶点着色器和片元着色器之间的数据传递和插值计算
+**在顶点着色器**
+```js
+attribute vec4 a_color;// attribute声明顶点颜色变量
+varying vec4 v_color;//varying声明顶点颜色插值后变量
+void main() {
+  //顶点颜色插值计算
+  v_color = a_color;
+}
+```
+**片元着色器**
+```js
+// 接收顶点着色器中v_color数据
+varying vec4 v_color;
+void main() {
+  // 插值后颜色数据赋值给对应的片元
+  gl_FragColor = v_color;
+}
+``
 
 ## 2、enable
 用于启用各种功能。功能由参数决定。与 `disable` 相对应。`disable` 是用来关闭的。两个函数参数取值是一至的。参数主要有以下这些：

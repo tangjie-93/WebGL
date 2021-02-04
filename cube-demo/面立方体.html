@@ -122,8 +122,8 @@
               * gl.CULL_FACE：表示隐藏正面
               * gl.DEPTH_TEST：启用深度测试。根据坐标的远近自动隐藏被遮住的图形
               * **/
-            //   gl.enable(gl.DEPTH_TEST);
-            gl.enable(gl.CULL_FACE);
+              gl.enable(gl.DEPTH_TEST);
+            // gl.enable(gl.CULL_FACE);
             render(gl, program, indexdata.length)
         }
         function render(gl, program, count=36) {
