@@ -7,26 +7,19 @@
 
 <body onload="init()">
     <canvas id="webgl" width="500" height="500" style="background-color: #0d72da"></canvas>
-    <script src="../utils/webgl-helper.js"></script>
-    <script src="../utils/vector3.js"></script>
-    <script src="../utils/webgl-matrix.js"></script>
     <!-- 顶点着色器源码 -->
     <script id="vertexShader" type="x-shader/x-vertex">
         //浮点数设置为中等精度
         precision mediump float;
         attribute vec3 apos;
-        uniform mat4 mx;
-        uniform mat4 my;
         attribute vec4 acolor;
         varying vec4 vcolor;
-        attribute vec2 inUV;
-        varying vec2 outUV;
+        uniform mat4 mx;
+        uniform mat4 my;
         void main() {
             //两个旋转矩阵、顶点齐次坐标连乘
             gl_Position = mx*my*vec4(apos, 1);
-            //插值处理
             vcolor=acolor;
-            outUV=inUV;
         }
     </script>
     <!-- 片元着色器源码 -->
@@ -34,10 +27,8 @@
         // 所有float类型数据的精度是lowp
         precision mediump float;
         varying vec4 vcolor;
-        varying vec2 outUV;
-        uniform sampler2D texture;
         void main() {
-            gl_FragColor=texture2D(texture,outUV); //vcolor;  //
+            gl_FragColor =vcolor;
         }
     </script>
 
@@ -62,18 +53,11 @@
             //获取顶点着色器的位置变量apos
             const aposLocation = gl.getAttribLocation(program, 'apos');
             const acolor = gl.getAttribLocation(program, 'acolor');
-            const inUV=gl.getAttribLocation(program,'inUV');
-            const texture=gl.getUniformLocation(program,'texture');
-             //允许数据传递
-             gl.enableVertexAttribArray(aposLocation);
-            //   //允许数据传递
-              gl.enableVertexAttribArray(acolor);
-            //   //允许数据传递
-              gl.enableVertexAttribArray(inUV);
+           
            
             //创建立方体的顶点坐标数据
             const data = new Float32Array([
-                -0.5, -0.5, 0.5,    1, 0, 0, 1,     0.0,0.0,
+            -0.5, -0.5, 0.5,    1, 0, 0, 1,     0.0,0.0,
                 0.5, -0.5, 0.5,     1, 0, 0, 1,     1.0,0.0,
                 0.5, 0.5, 0.5,      1, 0, 0, 1,     1.0,1.0,
                 -0.5, 0.5, 0.5,     1, 0, 0, 1,     0.0,1.0,
@@ -83,20 +67,20 @@
                 -0.5, -0.5, -0.5,  0, 1, 0, 1,      0.0,0.0,
                 -0.5, -0.5, 0.5,   0, 1, 0, 1,      1.0,0.0,
 
-                0.5, 0.5, 0.5,     0, 0, 1, 1,      0.0,1.0,
+                0.5, 0.5, 0.5,     0, 0, 1, 1,      1.0,0.0,
                 0.5, -0.5, 0.5,    0, 0, 1, 1,      0.0,0.0,
                 0.5, -0.5, -0.5,   0, 0, 1, 1,      1.0,0.0,
                 0.5, 0.5, -0.5,    0, 0, 1, 1,      1.0,1.0,
 
                 0.5, 0.5, -0.5,    1, 0, 1, 1,      0.0,1.0,
                 0.5, -0.5, -0.5,   1, 0, 1, 1,      0.0,0.0,
-                -0.5, -0.5, -0.5,  1, 0, 1, 1,      1.0,0.0,
+                -0.5, -0.5, -0.5,  1, 0, 1, 1,      0.0,1.0,
                 -0.5, 0.5, -0.5,   1, 0, 1, 1,      1.0,1.0,
 
-                -0.5, 0.5, 0.5,    1, 1, 0, 1,      0.0,1.0,
-                0.5, 0.5, 0.5,     1, 1, 0, 1,      1.0,1.0,
-                0.5, 0.5, -0.5,    1, 1, 0, 1,      1.0,0.0,
-                -0.5, 0.5, -0.5,   1, 1, 0, 1,      0.0,0.0,
+                -0.5, 0.5, 0.5,    1, 1, 0, 1,      0.0,0.0,
+                0.5, 0.5, 0.5,     1, 1, 0, 1,      1.0,0.0,
+                0.5, 0.5, -0.5,    1, 1, 0, 1,      1.0,1.0,
+                -0.5, 0.5, -0.5,   1, 1, 0, 1,      0.0,1.0,
 
                 -0.5, -0.5, 0.5,   0, 1, 1, 1,      0.0,0.0,
                 -0.5, -0.5, -0.5,  0, 1, 1, 1,      0.0,1.0,
@@ -111,54 +95,39 @@
                 16, 17, 18, 16, 18, 19,
                 20, 21, 22, 20, 22, 23
             ])
-            //创建缓冲区对象
-            const buffer = gl.createBuffer();
-            //绑定缓冲区对象
-            gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-            //顶点数组data数据传入缓冲区
-            gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
-
-            //创建索引缓冲区对象
-            const indexBuffer = gl.createBuffer();
-            //绑定索引缓冲区对象
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-            // //顶点数组data数据传入索引缓冲区
-            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indexdata, gl.STATIC_DRAW);
-
-              ///缓冲区中的数据按照一定的规律传递给位置变量apos
-            gl.vertexAttribPointer(aposLocation, 3, gl.FLOAT, false, 4 * 9, 0);
-            gl.vertexAttribPointer(inUV, 2, gl.FLOAT, false, 4 * 9, 4*7);
-            gl.vertexAttribPointer(acolor, 4, gl.FLOAT, false, 4 * 9, 4*3);
+            vertexBuffer(gl,data,aposLocation,3,'',4*9,0);
+            vertexBuffer(gl,indexdata,acolor,4,'index',4*9,12);
+             /**执行绘制之前，一定要开启深度测试，以免颜色混乱
+              * gl.CULL_FACE：表示隐藏正面
+              * gl.DEPTH_TEST：启用深度测试。根据坐标的远近自动隐藏被遮住的图形
+              * **/
               gl.enable(gl.DEPTH_TEST);
             // gl.enable(gl.CULL_FACE);
-            // render(gl, program, indexdata.length)
-            initTexture(gl, '../images/1.jpg', texture, function () {
-                render(gl, program, indexdata.length)
-            })
+            render(gl, program, indexdata.length)
         }
-        function initTexture(gl, src, attribute, callback) {
-            let img = new Image();
-            img.onload = function() {
-                let texture = gl.createTexture();
-                gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true); //纹理图片上下反转
-                gl.activeTexture(gl.TEXTURE0);
-                gl.bindTexture(gl.TEXTURE_2D, texture);
-                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-                gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S, gl.REPEAT);
-                gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T, gl.REPEAT);
-                gl.uniform1i(attribute, 0);
-                callback && callback();
-            };
-            img.src = src;
+        function vertexBuffer(gl,data,position,n,type,rowCount=0,offset=0){
+             //创建缓冲区对象
+             const buffer = gl.createBuffer();
+             if(type==='index'){
+                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffer);
+                gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, data, gl.STATIC_DRAW);
+             }else{
+                 //绑定缓冲区对象
+                gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+                //顶点数组data数据传入缓冲区
+                gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+             }
+            ///缓冲区中的数据按照一定的规律传递给位置变量apos
+            gl.vertexAttribPointer(position, n, gl.FLOAT, false, rowCount, offset);
+             //允许数据传递
+            gl.enableVertexAttribArray(position);
         }
         function render(gl, program, count=36) {
             tranlate(gl, program);
             //设置清屏颜色为黑色。
             gl.clearColor(0, 0, 0, 1);
             gl.clear(gl.COLOR_BUFFER_BIT);
-            // gl.drawArrays(gl.TRIANGLES, 0, count);
+            
             gl.drawElements(gl.TRIANGLES, count, gl.UNSIGNED_SHORT, 0);
         }
         //声明初始化着色器函数
@@ -195,7 +164,6 @@
             ])
             
             gl.uniformMatrix4fv(my, false, myArr);
-            // angle++;
         }
     </script>
 </body>

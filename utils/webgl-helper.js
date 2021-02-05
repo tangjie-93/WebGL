@@ -175,7 +175,7 @@ function loadTexture(gl, src, attribute, callback) {
   let img = new Image();
   img.crossOrigin = 'anonymous';
   img.onload = function() {
-    gl.activeTexture(gl.TEXTURE0);
+    gl.activeTexture(gl.TEXTURE1);
     let texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
@@ -183,7 +183,7 @@ function loadTexture(gl, src, attribute, callback) {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S, gl.REPEAT);
     gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T, gl.REPEAT);
-    gl.uniform1i(attribute, 0);
+    gl.uniform1i(attribute, 1);
     callback && callback();
   };
   img.src = src;

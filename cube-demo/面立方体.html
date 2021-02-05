@@ -95,29 +95,8 @@
                 16, 17, 18, 16, 18, 19,
                 20, 21, 22, 20, 22, 23
             ])
-            //创建缓冲区对象
-            var buffer = gl.createBuffer();
-            //绑定缓冲区对象
-            gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-            //顶点数组data数据传入缓冲区
-            gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
-            ///缓冲区中的数据按照一定的规律传递给位置变量apos
-            gl.vertexAttribPointer(aposLocation, 3, gl.FLOAT, false, 4 * 7, 0);
-             //允许数据传递
-             gl.enableVertexAttribArray(aposLocation);
-            //创建索引缓冲区对象
-            var indexBuffer = gl.createBuffer();
-            /*
-                如果使用索引缓存时，报这种错时：GL_INVALID_OPERATION: Must have element array buffer bound，表示在调用bindBuffer或者bufferData时第一个的参数使用有误，没有使用gl.ELEMENT_ARRAY_BUFFER。
-            */
-            //绑定索引缓冲区对象
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-            //顶点数组data数据传入索引缓冲区
-            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indexdata, gl.STATIC_DRAW);
-            // 设置 a_Color 属性从缓冲区读取数据方式
-            gl.vertexAttribPointer(acolor, 4, gl.FLOAT, false, 28, 12);
-
-            gl.enableVertexAttribArray(acolor);
+            vertexBuffer(gl,data,aposLocation,3,'',4*7,0);
+            vertexBuffer(gl,indexdata,acolor,4,'index',4*7,12);
              /**执行绘制之前，一定要开启深度测试，以免颜色混乱
               * gl.CULL_FACE：表示隐藏正面
               * gl.DEPTH_TEST：启用深度测试。根据坐标的远近自动隐藏被遮住的图形
@@ -125,6 +104,23 @@
               gl.enable(gl.DEPTH_TEST);
             // gl.enable(gl.CULL_FACE);
             render(gl, program, indexdata.length)
+        }
+        function vertexBuffer(gl,data,position,n,type,rowCount=0,offset=0){
+             //创建缓冲区对象
+             const buffer = gl.createBuffer();
+             if(type==='index'){
+                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffer);
+                gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, data, gl.STATIC_DRAW);
+             }else{
+                 //绑定缓冲区对象
+                gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+                //顶点数组data数据传入缓冲区
+                gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+             }
+            ///缓冲区中的数据按照一定的规律传递给位置变量apos
+            gl.vertexAttribPointer(position, n, gl.FLOAT, false, rowCount, offset);
+             //允许数据传递
+            gl.enableVertexAttribArray(position);
         }
         function render(gl, program, count=36) {
             tranlate(gl, program);
