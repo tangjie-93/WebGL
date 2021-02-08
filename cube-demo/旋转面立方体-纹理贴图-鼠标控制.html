@@ -43,6 +43,9 @@
 
     <script>
         let rotate=false;
+        let lastMouseX=0,lastMouseY=0;
+            let offsetX=0,offsetY=0;
+            let mousedown=false;
         function init() {
             //通过getElementById()方法获取canvas画布
             const canvas = document.getElementById('webgl');
@@ -57,6 +60,30 @@
             //初始化着色器
             const program = initShader(gl, vertexShaderSource, fragShaderSource);
             initBuffer(gl, program);
+
+          
+            canvas.addEventListener('mousedown',(event)=>{
+                mousedown=true;
+                const {clientX,clientY}=event;
+                lastMouseX=clientX;
+                lastMouseY=clientY;
+            })
+            canvas.addEventListener('mousemove',(event)=>{
+                if(!mousedown) return;
+                const {clientX,clientY}=event;
+                offsetY=-(clientX-lastMouseX);
+                offsetX=-(clientY-lastMouseY);
+
+                // console.log('client',clientX,clientY);
+                // console.log('init',lastMouseX,lastMouseY);
+                // console.log('offset',offsetX,offsetY);
+                // // debugger
+                // render(gl,program);
+            })
+            canvas.addEventListener('mouseup',()=>{
+                mousedown=false;
+                // render(gl,program);
+            })
         }
         function initBuffer(gl, program) {
             //获取顶点着色器的位置变量apos
@@ -154,12 +181,16 @@
             img.src = src;
         }
         function render(gl, program, count=36) {
-            tranlate(gl, program);
+            translateX(gl, program);
+            translateY(gl,program);
             //设置清屏颜色为黑色。
             gl.clearColor(0, 0, 0, 1);
             gl.clear(gl.COLOR_BUFFER_BIT);
             // gl.drawArrays(gl.TRIANGLES, 0, count);
             gl.drawElements(gl.TRIANGLES, count, gl.UNSIGNED_SHORT, 0);
+            requestAnimationFrame(()=>{
+                render(gl, program, count=36);
+            })
         }
         //声明初始化着色器函数
         function initShader(gl, vertexShaderSource, fragmentShaderSource) {
@@ -177,9 +208,9 @@
             gl.useProgram(program);
             return program;
         }
-        let angle=30.0;
-        function tranlate(gl, program) {
-            const rad = angle * Math.PI / 180;
+        let angleX=30.0,angleY=30.0;
+        function translateX(gl,program){
+            const rad = angleX * Math.PI / 180;
             const cos = Math.cos(rad);
             const sin = Math.sin(rad);
 
@@ -188,14 +219,20 @@
                 1, 0, 0, 0, 0, cos, -sin, 0, 0, sin, cos, 0, 0, 0, 0, 1
             ])
             gl.uniformMatrix4fv(mx, false, mxArr);
-
+            angleX=30.0+offsetX;
+            console.log(angleX,"angleX");
+        }
+        function translateY(gl,program){
+            const rad = angleY * Math.PI / 180;
+            const cos = Math.cos(rad);
+            const sin = Math.sin(rad);
             const my = gl.getUniformLocation(program, 'my');
             const myArr = new Float32Array([
                 cos, 0, -sin, 0,  0, 1, 0, 0,  sin, 0, cos, 0,  0, 0, 0, 1
             ])
-            
             gl.uniformMatrix4fv(my, false, myArr);
-            // angle++;
+            angleY=30.0+offsetY;
+            console.log(angleX,'angleY');
         }
     </script>
 </body>
