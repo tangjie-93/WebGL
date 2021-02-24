@@ -94,7 +94,7 @@
     /**
      * 渲染管线α融合功能单元配置
      **/
-    gl.enable(gl.BLEND);
+    gl.enable(gl.BLEND);//开启颜色融合
     gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
     /**执行绘制命令**/
     gl.drawArrays(gl.TRIANGLES,0,9);
