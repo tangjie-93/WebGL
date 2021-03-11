@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+
+        .cube {
+            width: 100px;
+            height: 100px;
+            margin: 100px;
+            backface-visibility: visible;
+            /* perspective: 300px; */
+            transform-style: preserve-3d;
+            -webkit-backface-visibility: visible;
+            /* -webkit-perspective: 300px; */
+            -webkit-transform-style: preserve-3d;
+        }
+
+        .face {
+            display: block;
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            border: none;
+            line-height: 200px;
+            font-family: sans-serif;
+            font-size: 60px;
+            color: white;
+            text-align: center;
+        }
+        .potl {
+            perspective-origin: top left;
+            -webkit-perspective-origin: top left;
+            transform: rotate3d(1, 0, 0, 50deg);
+            animation: rotate 10s linear infinite;
+        }
+
+        @keyframes rotate {
+            0% {
+                transform: rotate3d(1, 1, 1, 0deg);
+            }
+
+            100% {
+                transform: rotate3d(1, 1, 1, 360deg);
+            }
+        }
+        img {
+            width: 200px;
+            height: 200px;
+        }
+
+        /* Define each face based on direction */
+        .front {
+            background: rgba(0, 0, 0, 0.3);
+            transform: translateZ(100px);
+            -webkit-transform: translateZ(100px);
+        }
+
+        .back {
+            background: rgba(0, 255, 0, 1);
+            color: black;
+            /* 绕y轴旋转180度,然后再Z轴上平移100px */
+            transform: rotateY(180deg) translateZ(100px);
+            -webkit-transform: rotateY(180deg) translateZ(100px);
+        }
+
+        .right {
+            background: rgba(196, 0, 0, 0.7);
+            /* 绕y轴旋转90度,然后再Z轴上平移100px */
+            transform: rotateY(90deg) translateZ(100px);
+            /* transform: rotateY(90deg) translateZ(100px); */
+            -webkit-transform: rotateY(90deg) translateZ(100px);
+        }
+
+        .left {
+            background: rgba(0, 0, 196, 0.7);
+
+            transform: rotateY(-90deg) translateZ(100px);
+            -webkit-transform: rotateY(-90deg) translateZ(100px);
+        }
+
+        .top {
+            background: rgba(196, 196, 0, 0.7);
+            transform: rotateX(90deg) translateZ(100px);
+            -webkit-transform: rotateX(90deg) translateZ(100px)
+        }
+
+        .bottom {
+            background: rgba(196, 0, 196, 0.7);
+            transform: rotateX(-90deg) translateZ(100px);
+            -webkit-transform: rotateX(-90deg) translateZ(100px);
+        }
+
+    </style>
+</head>
+<body>
+    <div class="cube potl">
+        <div class="face front">
+            <img src="../images/1.jpg" alt="" srcset="">
+        </div>
+        <div class="face back"> <img src="../images/1.jpg" alt="" srcset=""></div>
+        <div class="face right"> <img src="../images/1.jpg" alt="" srcset=""></div>
+        <div class="face left"> <img src="../images/1.jpg" alt="" srcset=""></div>
+        <div class="face top"> <img src="../images/1.jpg" alt="" srcset=""></div>
+        <div class="face bottom"> <img src="../images/1.jpg" alt="" srcset=""></div>
+    </div>
+</body>
+</html>
