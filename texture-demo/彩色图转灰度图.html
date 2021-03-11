@@ -15,22 +15,27 @@
       uniform vec2 u_Screen_Size;
       varying vec2 v_Uv;
       attribute vec2 a_Uv;
-
       void main(){
+          //vec2类型的数据可以直接乘除
+          //position的坐标值在(-1,-1)到(1,1)之间
           vec2 position = (a_Position / u_Screen_Size) * 2.0 - 1.0;
           position = position * vec2(1.0, -1.0);
           gl_Position = vec4(position, 0, 1);
+          //纹理坐标差值计算
           v_Uv = a_Uv;
       }
     </script>
   <script type="shader-source" id="fragmentShader">
       //浮点数设置为中等精度
       precision mediump float;
-      varying vec2 v_Uv;
       uniform sampler2D u_Texture;
+      varying vec2 v_Uv;
       void main(){
-          // 点的最终颜色。
-          gl_FragColor = texture2D(u_Texture, v_Uv);
+          vec4 texture=texture2D(u_Texture, v_Uv);
+        //计算RGB三个分量光能量之和，也就是亮度
+        float luminance = 0.199*texture.r+0.187*texture.g+0.714*texture.b;
+        //逐片元赋值，RGB相同均为亮度值，用黑白两色表达图片的明暗变化
+        gl_FragColor = vec4(luminance,luminance,luminance,1.0); 
       }
     </script>
   <script src="../utils/webgl-helper.js"></script>
@@ -38,11 +43,9 @@
   <script src="../utils/webgl-matrix.js"></script>
   <script>
     //获取canvas
-    let canvas = getCanvas("#canvas");
-    //设置canvas尺寸为满屏
-    // resizeCanvas(canvas);
+    let canvas = document.querySelector("#canvas");
     //获取绘图上下文
-    let gl = getContext(canvas);
+    let gl = canvas.getContext('webgl');
     gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
     //创建着色器程序
     let program = createSimpleProgramFromScript(
@@ -53,14 +56,14 @@
 
     //使用该着色器程序
     gl.useProgram(program);
-    let positions = [
+    let positions =new Float32Array([
       30, 30, 0, 0,
-      30, 300, 0, 2,
-      300, 300, 2, 2,
+      30, 370, 0, 1,
+      370, 370, 1, 1,
       30, 30, 0, 0,
-      300, 300, 2, 2,
-      300, 30, 2, 0
-    ];
+      370, 370, 1, 1,
+      370, 30, 1, 0
+    ]);
 
     // 随机生成一个颜色。
     var color = randomColor();
@@ -81,28 +84,18 @@
     gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, 16, 0);
     // 设置 a_Uv 属性从缓冲区读取数据方式
     gl.vertexAttribPointer(a_Uv, 2, gl.FLOAT, false, 16, 8);
-
-    let anim = 0.01;
+    // 向缓冲区传递数据
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      positions,
+      gl.STATIC_DRAW
+    );
+    //设置清屏颜色为黑色。
+    gl.clearColor(0, 0, 0, 1);
     function render() {
-    
-       // 向缓冲区传递数据
-       gl.bufferData(
-        gl.ARRAY_BUFFER,
-        new Float32Array(positions),
-        gl.STATIC_DRAW
-      );
-      //设置清屏颜色为黑色。
-      gl.clearColor(0, 0, 0, 1);
       gl.clear(gl.COLOR_BUFFER_BIT);
       gl.drawArrays(gl.TRIANGLES, 0, positions.length / 4);
-      if (positions.length <= 0) {
-        return;
-      }
-      for (let i = 2; i < positions.length; i += 4) {
-        positions[i] += anim;
-      }
-      requestAnimationFrame(render);
-     
+
     }
 
     loadTexture(gl, '../images/1.jpg', u_Texture, function () {
