@@ -71,13 +71,8 @@
             canvas.addEventListener('mousemove',(event)=>{
                 if(!mousedown) return;
                 const {clientX,clientY}=event;
-                offsetY=-(clientX-lastMouseX);
-                offsetX=-(clientY-lastMouseY);
-
-                // console.log('client',clientX,clientY);
-                // console.log('init',lastMouseX,lastMouseY);
-                // console.log('offset',offsetX,offsetY);
-                // // debugger
+                offsetY=(clientX-lastMouseX);
+                offsetX=(clientY-lastMouseY);
                 // render(gl,program);
             })
             canvas.addEventListener('mouseup',()=>{
