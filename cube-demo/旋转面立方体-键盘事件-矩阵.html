@@ -7,6 +7,9 @@
 
 <body onload="init()">
     <canvas id="webgl" width="500" height="500" style="background-color: #0d72da"></canvas>
+    <script src="../utils/webgl-helper.js"></script>
+    <script src="../utils/vector3.js"></script>
+    <script src="../utils/webgl-matrix.js"></script>
     <!-- 顶点着色器源码 -->
     <script id="vertexShader" type="x-shader/x-vertex">
         //浮点数设置为中等精度
@@ -19,7 +22,8 @@
         uniform mat4 proj;
         void main() {
             //两个旋转矩阵、顶点齐次坐标连乘
-            gl_Position = mx*my*vec4(apos, 1);
+            //gl_Position = mx*my*vec4(apos, 1);
+            gl_Position = proj*vec4(apos, 1);
             vcolor=acolor;
         }
     </script>
@@ -34,32 +38,59 @@
     </script>
 
     <script>
-        let rotate=false;
+        let isrotate = false;
+        let xaxis = 0, yaxis = 0;
+        //通过getElementById()方法获取canvas画布
+        const canvas = document.getElementById('webgl');
+        //通过方法getContext()获取WebGL上下文
+        const gl = canvas.getContext('webgl');
+        const aspect = canvas.width / canvas.height;
+
+        const projectionMatrix = matrix.ortho(-aspect * 1, aspect * 1, -1, 1, 200, -200);
+        const vertexShaderSource = document.getElementById('vertexShader').innerText;
+        //片元着色器源码
+        const fragShaderSource = document.getElementById('fragmentShader').innerText;
+        //初始化着色器
+        const program = initShader(gl, vertexShaderSource, fragShaderSource);
         function init() {
-            //通过getElementById()方法获取canvas画布
-            const canvas = document.getElementById('webgl');
-            //通过方法getContext()获取WebGL上下文
-            const gl = canvas.getContext('webgl');
-
             //顶点着色器源码
-            const vertexShaderSource = document.getElementById('vertexShader').innerText;
 
-            //片元着色器源码
-            const fragShaderSource = document.getElementById('fragmentShader').innerText;
-            //初始化着色器
-            const program = initShader(gl, vertexShaderSource, fragShaderSource);
             initBuffer(gl, program);
-            canvas.addEventListener('click',()=>{
-                rotate=!rotate;
-                render(gl,program);
+            document.addEventListener('keydown', (event) => {
+                const keyCode = event.keyCode;
+                switch (keyCode) {
+                    case 38:
+                        //向上旋转
+                        xaxis = 1;
+                        yaxis=0;
+                        break;
+                    case 40:
+                        //向下旋转
+                        xaxis = -1;
+                        yaxis=0;
+                        break;
+                    case 37:
+                        //想左旋转
+                        yaxis = -1;
+                        xaxis = 0;
+                        break;
+                    case 39:
+                        //想右旋转
+                        yaxis = 1;
+                        xaxis = 0;
+                        break;
+                }
+            })
+            document.addEventListener('click', () => {
+                isrotate = !isrotate;
+                render(gl, program);
             })
         }
+
         function initBuffer(gl, program) {
             //获取顶点着色器的位置变量apos
             const aposLocation = gl.getAttribLocation(program, 'apos');
             const acolor = gl.getAttribLocation(program, 'acolor');
-           
-           
             //创建立方体的顶点坐标数据
             const data = new Float32Array([
                 -0.5, -0.5, 0.5, 1, 0, 0, 1,
@@ -108,8 +139,8 @@
             gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
             ///缓冲区中的数据按照一定的规律传递给位置变量apos
             gl.vertexAttribPointer(aposLocation, 3, gl.FLOAT, false, 4 * 7, 0);
-             //允许数据传递
-             gl.enableVertexAttribArray(aposLocation);
+            //允许数据传递
+            gl.enableVertexAttribArray(aposLocation);
             //创建索引缓冲区对象
             var indexBuffer = gl.createBuffer();
             /*
@@ -121,26 +152,26 @@
             gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indexdata, gl.STATIC_DRAW);
             // 设置 a_Color 属性从缓冲区读取数据方式
             gl.vertexAttribPointer(acolor, 4, gl.FLOAT, false, 28, 12);
-
             gl.enableVertexAttribArray(acolor);
-             /**执行绘制之前，一定要开启深度测试，以免颜色混乱
-              * gl.CULL_FACE：表示隐藏正面
-              * gl.DEPTH_TEST：启用深度测试。根据坐标的远近自动隐藏被遮住的图形
-              * **/
+            /**执行绘制之前，一定要开启深度测试，以免颜色混乱
+             * gl.CULL_FACE：表示隐藏正面
+             * gl.DEPTH_TEST：启用深度测试。根据坐标的远近自动隐藏被遮住的图形
+             * **/
             //   gl.enable(gl.DEPTH_TEST);
             gl.enable(gl.CULL_FACE);
             render(gl, program, indexdata.length)
         }
-        function render(gl, program, count=36) {
-            tranlate(gl, program);
+        function render(gl, program, count = 36) {
+           
+            rotate(gl, program);
             //设置清屏颜色为黑色。
             gl.clearColor(0, 0, 0, 1);
             gl.clear(gl.COLOR_BUFFER_BIT);
-            
+
             gl.drawElements(gl.TRIANGLES, count, gl.UNSIGNED_SHORT, 0);
-            if(!rotate) return;
-            requestAnimationFrame(()=>{
-                render(gl, program,count);
+            if (!isrotate) return;
+            requestAnimationFrame(() => {
+                render(gl, program, count);
             })
         }
         //声明初始化着色器函数
@@ -158,25 +189,23 @@
             gl.linkProgram(program);
             gl.useProgram(program);
             return program;
-        }
-        let angle=30.0;
-        function tranlate(gl, program) {
-            const rad = angle * Math.PI / 180;
-            const cos = Math.cos(rad);
-            const sin = Math.sin(rad);
-            const mx = gl.getUniformLocation(program, 'mx');
-            const mxArr = new Float32Array([
-                1, 0, 0, 0, 0, cos, -sin, 0, 0, sin, cos, 0, 0, 0, 0, 1
-            ])
-            gl.uniformMatrix4fv(mx, false, mxArr);
-
-            const my = gl.getUniformLocation(program, 'my');
-            const myArr = new Float32Array([
-                cos, 0, -sin, 0,  0, 1, 0, 0,  sin, 0, cos, 0,  0, 0, 0, 1
-            ])
-            
-            gl.uniformMatrix4fv(my, false, myArr);
-            angle+=1;
+        };
+        let angley = 30, anglex = 30;
+        let mvp = matrix.identity();
+        function rotate(gl, program) {
+            //先绕 Y 轴旋转矩阵。
+            matrix.rotationY(angley * Math.PI / 180, mvp);
+            //再绕 X 轴旋转
+            matrix.multiply(
+                mvp,
+                matrix.rotationX(anglex * Math.PI / 180),
+                mvp
+            );
+            matrix.multiply(projectionMatrix, mvp, mvp);
+            const proj = gl.getUniformLocation(program, 'proj');
+            gl.uniformMatrix4fv(proj, false, mvp);
+            angley += yaxis;
+            anglex += xaxis;
         }
     </script>
 </body>

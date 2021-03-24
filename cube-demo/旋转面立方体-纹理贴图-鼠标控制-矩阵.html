@@ -17,13 +17,15 @@
         attribute vec3 apos;
         uniform mat4 mx;
         uniform mat4 my;
+        uniform mat4 proj;
         attribute vec4 acolor;
         varying vec4 vcolor;
         attribute vec2 inUV;
         varying vec2 outUV;
         void main() {
             //两个旋转矩阵、顶点齐次坐标连乘
-            gl_Position = mx*my*vec4(apos, 1);
+            //gl_Position = mx*my*vec4(apos, 1);
+            gl_Position=proj*vec4(apos, 1);
             //插值处理
             vcolor=acolor;
             outUV=inUV;
@@ -42,16 +44,17 @@
     </script>
 
     <script>
-        let rotate=false;
-        let lastMouseX=0,lastMouseY=0;
-            let offsetX=0,offsetY=0;
-            let mousedown=false;
-        function init() {
-            //通过getElementById()方法获取canvas画布
-            const canvas = document.getElementById('webgl');
-            //通过方法getContext()获取WebGL上下文
-            const gl = canvas.getContext('webgl');
+        let lastMouseX = 0, lastMouseY = 0;
+        let offsetX = 0, offsetY = 0;
+        let mousedown = false;
+        //通过getElementById()方法获取canvas画布
+        const canvas = document.getElementById('webgl');
+        //通过方法getContext()获取WebGL上下文
+        const gl = canvas.getContext('webgl');
+        const aspect = canvas.width / canvas.height;
 
+        const projectionMatrix = matrix.ortho(-aspect * 1, aspect * 1, -1, 1, 500, -500);
+        function init() {
             //顶点着色器源码
             const vertexShaderSource = document.getElementById('vertexShader').innerText;
 
@@ -61,22 +64,22 @@
             const program = initShader(gl, vertexShaderSource, fragShaderSource);
             initBuffer(gl, program);
 
-          
-            canvas.addEventListener('mousedown',(event)=>{
-                mousedown=true;
-                const {clientX,clientY}=event;
-                lastMouseX=clientX;
-                lastMouseY=clientY;
+
+            canvas.addEventListener('mousedown', (event) => {
+                mousedown = true;
+                const { clientX, clientY } = event;
+                lastMouseX = clientX;
+                lastMouseY = clientY;
             })
-            canvas.addEventListener('mousemove',(event)=>{
-                if(!mousedown) return;
-                const {clientX,clientY}=event;
-                offsetY=(clientX-lastMouseX);
-                offsetX=(clientY-lastMouseY);
-                render(gl,program);
+            canvas.addEventListener('mousemove', (event) => {
+                if (!mousedown) return;
+                const { clientX, clientY } = event;
+                offsetY = (clientX - lastMouseX);
+                offsetX = (clientY - lastMouseY);
+                render(gl, program);
             })
-            canvas.addEventListener('mouseup',()=>{
-                mousedown=false;
+            canvas.addEventListener('mouseup', () => {
+                mousedown = false;
                 // render(gl,program);
             })
         }
@@ -84,46 +87,46 @@
             //获取顶点着色器的位置变量apos
             const aposLocation = gl.getAttribLocation(program, 'apos');
             const acolor = gl.getAttribLocation(program, 'acolor');
-            const inUV=gl.getAttribLocation(program,'inUV');
-            const texture=gl.getUniformLocation(program,'texture');
-             //允许数据传递
-             gl.enableVertexAttribArray(aposLocation);
+            const inUV = gl.getAttribLocation(program, 'inUV');
+            const texture = gl.getUniformLocation(program, 'texture');
+            //允许数据传递
+            gl.enableVertexAttribArray(aposLocation);
             //   //允许数据传递
-              gl.enableVertexAttribArray(acolor);
+            gl.enableVertexAttribArray(acolor);
             //   //允许数据传递
-              gl.enableVertexAttribArray(inUV);
-           
+            gl.enableVertexAttribArray(inUV);
+
             //创建立方体的顶点坐标数据
             const data = new Float32Array([
-                -0.5, -0.5, 0.5,    1, 0, 0, 1,     0.0,0.0,
-                0.5, -0.5, 0.5,     1, 0, 0, 1,     1.0,0.0,
-                0.5, 0.5, 0.5,      1, 0, 0, 1,     1.0,1.0,
-                -0.5, 0.5, 0.5,     1, 0, 0, 1,     0.0,1.0,
+                -0.5, -0.5, 0.5, 1, 0, 0, 1, 0.0, 0.0,
+                0.5, -0.5, 0.5, 1, 0, 0, 1, 1.0, 0.0,
+                0.5, 0.5, 0.5, 1, 0, 0, 1, 1.0, 1.0,
+                -0.5, 0.5, 0.5, 1, 0, 0, 1, 0.0, 1.0,
 
-                -0.5, 0.5, 0.5,    0, 1, 0, 1,      1.0,1.0,
-                -0.5, 0.5, -0.5,   0, 1, 0, 1,      0.0,1.0,
-                -0.5, -0.5, -0.5,  0, 1, 0, 1,      0.0,0.0,
-                -0.5, -0.5, 0.5,   0, 1, 0, 1,      1.0,0.0,
+                -0.5, 0.5, 0.5, 0, 1, 0, 1, 1.0, 1.0,
+                -0.5, 0.5, -0.5, 0, 1, 0, 1, 0.0, 1.0,
+                -0.5, -0.5, -0.5, 0, 1, 0, 1, 0.0, 0.0,
+                -0.5, -0.5, 0.5, 0, 1, 0, 1, 1.0, 0.0,
 
-                0.5, 0.5, 0.5,     0, 0, 1, 1,      0.0,1.0,
-                0.5, -0.5, 0.5,    0, 0, 1, 1,      0.0,0.0,
-                0.5, -0.5, -0.5,   0, 0, 1, 1,      1.0,0.0,
-                0.5, 0.5, -0.5,    0, 0, 1, 1,      1.0,1.0,
+                0.5, 0.5, 0.5, 0, 0, 1, 1, 0.0, 1.0,
+                0.5, -0.5, 0.5, 0, 0, 1, 1, 0.0, 0.0,
+                0.5, -0.5, -0.5, 0, 0, 1, 1, 1.0, 0.0,
+                0.5, 0.5, -0.5, 0, 0, 1, 1, 1.0, 1.0,
 
-                0.5, 0.5, -0.5,    1, 0, 1, 1,      0.0,1.0,
-                0.5, -0.5, -0.5,   1, 0, 1, 1,      0.0,0.0,
-                -0.5, -0.5, -0.5,  1, 0, 1, 1,      1.0,0.0,
-                -0.5, 0.5, -0.5,   1, 0, 1, 1,      1.0,1.0,
+                0.5, 0.5, -0.5, 1, 0, 1, 1, 0.0, 1.0,
+                0.5, -0.5, -0.5, 1, 0, 1, 1, 0.0, 0.0,
+                -0.5, -0.5, -0.5, 1, 0, 1, 1, 1.0, 0.0,
+                -0.5, 0.5, -0.5, 1, 0, 1, 1, 1.0, 1.0,
 
-                -0.5, 0.5, 0.5,    1, 1, 0, 1,      0.0,1.0,
-                0.5, 0.5, 0.5,     1, 1, 0, 1,      1.0,1.0,
-                0.5, 0.5, -0.5,    1, 1, 0, 1,      1.0,0.0,
-                -0.5, 0.5, -0.5,   1, 1, 0, 1,      0.0,0.0,
+                -0.5, 0.5, 0.5, 1, 1, 0, 1, 0.0, 1.0,
+                0.5, 0.5, 0.5, 1, 1, 0, 1, 1.0, 1.0,
+                0.5, 0.5, -0.5, 1, 1, 0, 1, 1.0, 0.0,
+                -0.5, 0.5, -0.5, 1, 1, 0, 1, 0.0, 0.0,
 
-                -0.5, -0.5, 0.5,   0, 1, 1, 1,      0.0,0.0,
-                -0.5, -0.5, -0.5,  0, 1, 1, 1,      0.0,1.0,
-                0.5, -0.5, -0.5,   0, 1, 1, 1,      1.0,1.0,
-                0.5, -0.5, 0.5,    0, 1, 1, 1,      1.0,0.0
+                -0.5, -0.5, 0.5, 0, 1, 1, 1, 0.0, 0.0,
+                -0.5, -0.5, -0.5, 0, 1, 1, 1, 0.0, 1.0,
+                0.5, -0.5, -0.5, 0, 1, 1, 1, 1.0, 1.0,
+                0.5, -0.5, 0.5, 0, 1, 1, 1, 1.0, 0.0
             ]);
             const indexdata = new Uint16Array([
                 0, 1, 2, 0, 2, 3,
@@ -147,11 +150,11 @@
             // //顶点数组data数据传入索引缓冲区
             gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indexdata, gl.STATIC_DRAW);
 
-              ///缓冲区中的数据按照一定的规律传递给位置变量apos
+            ///缓冲区中的数据按照一定的规律传递给位置变量apos
             gl.vertexAttribPointer(aposLocation, 3, gl.FLOAT, false, 4 * 9, 0);
-            gl.vertexAttribPointer(inUV, 2, gl.FLOAT, false, 4 * 9, 4*7);
-            gl.vertexAttribPointer(acolor, 4, gl.FLOAT, false, 4 * 9, 4*3);
-              gl.enable(gl.DEPTH_TEST);
+            gl.vertexAttribPointer(inUV, 2, gl.FLOAT, false, 4 * 9, 4 * 7);
+            gl.vertexAttribPointer(acolor, 4, gl.FLOAT, false, 4 * 9, 4 * 3);
+            gl.enable(gl.DEPTH_TEST);
             // gl.enable(gl.CULL_FACE);
             // render(gl, program, indexdata.length)
             initTexture(gl, '../images/1.jpg', texture, function () {
@@ -160,7 +163,7 @@
         }
         function initTexture(gl, src, attribute, callback) {
             let img = new Image();
-            img.onload = function() {
+            img.onload = function () {
                 let texture = gl.createTexture();
                 gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true); //纹理图片上下反转
                 gl.activeTexture(gl.TEXTURE0);
@@ -168,16 +171,17 @@
                 gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-                gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S, gl.REPEAT);
-                gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T, gl.REPEAT);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
                 gl.uniform1i(attribute, 0);
                 callback && callback();
             };
             img.src = src;
         }
-        function render(gl, program, count=36) {
-            translateX(gl, program);
-            translateY(gl,program);
+        function render(gl, program, count = 36) {
+            // translateX(gl, program);
+            // translateY(gl,program);
+            rotate(gl, program);
             //设置清屏颜色为黑色。
             gl.clearColor(0, 0, 0, 1);
             gl.clear(gl.COLOR_BUFFER_BIT);
@@ -195,7 +199,6 @@
             gl.shaderSource(fragmentShader, fragmentShaderSource);
             gl.compileShader(vertexShader);
             gl.compileShader(fragmentShader);
-
             var program = gl.createProgram();
             gl.attachShader(program, vertexShader);
             gl.attachShader(program, fragmentShader);
@@ -203,31 +206,19 @@
             gl.useProgram(program);
             return program;
         }
-        let angleX=30.0,angleY=30.0;
-        function translateX(gl,program){
-            const rad = angleX * Math.PI / 180;
-            const cos = Math.cos(rad);
-            const sin = Math.sin(rad);
-
-            const mx = gl.getUniformLocation(program, 'mx');
-            const mxArr = new Float32Array([
-                1, 0, 0, 0, 0, cos, -sin, 0, 0, sin, cos, 0, 0, 0, 0, 1
-            ])
-            gl.uniformMatrix4fv(mx, false, mxArr);
-            angleX+=offsetX;
-            console.log(angleX,"angleX");
-        }
-        function translateY(gl,program){
-            const rad = angleY * Math.PI / 180;
-            const cos = Math.cos(rad);
-            const sin = Math.sin(rad);
-            const my = gl.getUniformLocation(program, 'my');
-            const myArr = new Float32Array([
-                cos, 0, -sin, 0,  0, 1, 0, 0,  sin, 0, cos, 0,  0, 0, 0, 1
-            ])
-            gl.uniformMatrix4fv(my, false, myArr);
-            angleY+=offsetY;
-            console.log(angleX,'angleY');
+        let mvp = matrix.identity();
+        function rotate(gl, program) {
+            //先绕 Y 轴旋转矩阵。
+            matrix.rotationY(-offsetY * Math.PI / 180, mvp);
+            //再绕 X 轴旋转
+            matrix.multiply(
+                mvp,
+                matrix.rotationX(-offsetX * Math.PI / 180),
+                mvp
+            );
+            matrix.multiply(projectionMatrix, mvp, mvp);
+            const proj = gl.getUniformLocation(program, 'proj');
+            gl.uniformMatrix4fv(proj, false, mvp);
         }
     </script>
 </body>
