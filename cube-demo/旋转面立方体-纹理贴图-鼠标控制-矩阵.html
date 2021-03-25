@@ -9,6 +9,7 @@
     <canvas id="webgl" width="500" height="500" style="background-color: #0d72da"></canvas>
     <script src="../utils/webgl-helper.js"></script>
     <script src="../utils/vector3.js"></script>
+    <script src="../utils/quaternion.js"></script>
     <script src="../utils/webgl-matrix.js"></script>
     <!-- 顶点着色器源码 -->
     <script id="vertexShader" type="x-shader/x-vertex">
@@ -44,16 +45,22 @@
     </script>
 
     <script>
+        var Vector3 = window.lib3d.Vector3;
+        var Quaternion = window.lib3d.Quaternion;
         let lastMouseX = 0, lastMouseY = 0;
         let offsetX = 0, offsetY = 0;
         let mousedown = false;
         //通过getElementById()方法获取canvas画布
         const canvas = document.getElementById('webgl');
+        // resizeCanvas(canvas);
         //通过方法getContext()获取WebGL上下文
         const gl = canvas.getContext('webgl');
         const aspect = canvas.width / canvas.height;
 
         const projectionMatrix = matrix.ortho(-aspect * 1, aspect * 1, -1, 1, 500, -500);
+        let lastMatrix = matrix.identity();
+        let tempMatrix = matrix.identity();
+        let mvp = matrix.identity();
         function init() {
             //顶点着色器源码
             const vertexShaderSource = document.getElementById('vertexShader').innerText;
@@ -64,24 +71,52 @@
             const program = initShader(gl, vertexShaderSource, fragShaderSource);
             initBuffer(gl, program);
 
-
+            var lastQ = new Quaternion();
+            var currentQ = new Quaternion();
             canvas.addEventListener('mousedown', (event) => {
                 mousedown = true;
                 const { clientX, clientY } = event;
                 lastMouseX = clientX;
                 lastMouseY = clientY;
+                canvas.addEventListener('mousemove', (event) => {
+                    if (!mousedown) return;
+                    const { clientX, clientY } = event;
+                    offsetX = (clientX - lastMouseX);
+                    offsetY= (clientY - lastMouseY);
+                    // const factor = 0.6;
+                    // const euler = {
+                    //     x: factor * offsetX * Math.PI / 180,
+                    //     y: factor * (offsetY) * Math.PI / 180,
+                    //     z: 0
+                    // };
+                    // let tempMatrix = matrix.getMatrixFromEuler(euler);
+                    // mvp = matrix.multiply(
+                    //     lastMatrix,
+                    //     tempMatrix
+
+                    // );
+                    // mvp=matrix.multiply(projectionMatrix, mvp);
+
+
+                    var l = Math.sqrt(offsetX * offsetX + offsetY * offsetY);
+                    if (l == 0) {
+                        return;
+                    }
+                    var tempQ = Quaternion.fromRotation(
+                        { x: offsetY / l, y: offsetX / l, z: 0 },
+                        l / 2
+                    );
+                    currentQ = Quaternion.multiplyQuaternions(tempQ, lastQ);
+                    mvp = Quaternion.makeRotationFromQuaternion(currentQ);
+                    render(gl, program);
+                })
+                canvas.addEventListener('mouseup', () => {
+                    mousedown = false;
+                    // matrix.cloneMatrix(mvp, lastMatrix);
+                    Object.assign(lastQ, currentQ);
+                })
             })
-            canvas.addEventListener('mousemove', (event) => {
-                if (!mousedown) return;
-                const { clientX, clientY } = event;
-                offsetY = (clientX - lastMouseX);
-                offsetX = (clientY - lastMouseY);
-                render(gl, program);
-            })
-            canvas.addEventListener('mouseup', () => {
-                mousedown = false;
-                // render(gl,program);
-            })
+
         }
         function initBuffer(gl, program) {
             //获取顶点着色器的位置变量apos
@@ -154,8 +189,8 @@
             gl.vertexAttribPointer(aposLocation, 3, gl.FLOAT, false, 4 * 9, 0);
             gl.vertexAttribPointer(inUV, 2, gl.FLOAT, false, 4 * 9, 4 * 7);
             gl.vertexAttribPointer(acolor, 4, gl.FLOAT, false, 4 * 9, 4 * 3);
-            gl.enable(gl.DEPTH_TEST);
-            // gl.enable(gl.CULL_FACE);
+            // gl.enable(gl.DEPTH_TEST);
+            gl.enable(gl.CULL_FACE);
             // render(gl, program, indexdata.length)
             initTexture(gl, '../images/1.jpg', texture, function () {
                 render(gl, program, indexdata.length)
@@ -178,9 +213,8 @@
             };
             img.src = src;
         }
+
         function render(gl, program, count = 36) {
-            // translateX(gl, program);
-            // translateY(gl,program);
             rotate(gl, program);
             //设置清屏颜色为黑色。
             gl.clearColor(0, 0, 0, 1);
@@ -206,17 +240,28 @@
             gl.useProgram(program);
             return program;
         }
-        let mvp = matrix.identity();
+        const factor = 0.6;
+        var matrixX = matrix.identity();
+        var matrixY = matrix.identity();
+
         function rotate(gl, program) {
-            //先绕 Y 轴旋转矩阵。
-            matrix.rotationY(-offsetY * Math.PI / 180, mvp);
-            //再绕 X 轴旋转
-            matrix.multiply(
-                mvp,
-                matrix.rotationX(-offsetX * Math.PI / 180),
-                mvp
-            );
-            matrix.multiply(projectionMatrix, mvp, mvp);
+            // matrixY = matrix.rotateY(matrixY,(Math.PI / 180) * offsetY);
+            // matrixX = matrix.rotateX(
+            //   matrixY,
+            //   (Math.PI / 180) * offsetX
+            // );
+            //  matrix.multiply(mvp,matrixX,mvp);
+            // //先绕 Y 轴旋转矩阵。
+            // const rotateY=matrix.rotateY(mvp,offsetY * Math.PI / 180);
+            // //再绕 X 轴旋转
+            // matrix.multiply(
+            //     rotateY,
+            //     matrix.rotationX(-offsetX * Math.PI / 180),
+            //     mvp
+            // );
+
+            // tempMatrix = matrix.multiply(mvp,tempMatrix);
+
             const proj = gl.getUniformLocation(program, 'proj');
             gl.uniformMatrix4fv(proj, false, mvp);
         }
