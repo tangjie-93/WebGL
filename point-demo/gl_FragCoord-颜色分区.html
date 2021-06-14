@@ -39,12 +39,9 @@
         let canvas = document.getElementById('canvas');
         //获取绘图上下文
         let gl = canvas.getContext('webgl');
-        //创建定点着色器
-        let vertexShader = document.querySelector('#vertexShader').innerText;
-        //创建片元着色器
-        let fragmentShader = document.querySelector('#fragmentShader').innerText;
+       
         //创建着色器程序
-        let program = initShader(gl, vertexShader, fragmentShader);
+        let program = initShader(gl);
         //设置清屏颜色为黑色。
         gl.clearColor(0, 0, 0, 1.0);
         //清屏
@@ -52,7 +49,11 @@
         //绘制一个点。
         gl.drawArrays(gl.POINTS, 0, 1);
         //声明初始化着色器函数
-        function initShader(gl, vertexShaderSource, fragmentShaderSource) {
+        function initShader(gl) {
+             //创建定点着色器
+        let vertexShader = document.querySelector('#vertexShader').innerText;
+        //创建片元着色器
+        let fragmentShader = document.querySelector('#fragmentShader').innerText;
             //创建顶点着色器对象
             var vertexShader = gl.createShader(gl.VERTEX_SHADER);
             //创建片元着色器对象

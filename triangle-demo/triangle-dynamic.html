@@ -1,28 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 	<meta charset="UTF-8">
 	<title>单个 buffer 绘制渐变三角形</title>
-	<link rel = "stylesheet" href="../css/common.css" />
+	<!-- <link rel="stylesheet" href="../css/common.css" /> -->
 </head>
+
 <body>
-	<canvas id="canvas"></canvas>
+	<canvas id="webgl"></canvas>
 	<script type="shader-source" id="vertexShader">
 		//浮点数设置为中等精度
 		precision mediump float;
 		//接收 JavaScript 传递过来的点的坐标（X, Y）
 		attribute vec2 a_Position;
-		// 接收canvas的尺寸。
-		attribute vec2 a_Screen_Size;
 		attribute vec4 a_Color;
 		varying vec4 v_Color;
 		void main(){
-			// 将 canvas 的坐标值 转换为 [-1.0, 1.0]的范围。
-			vec2 position = (a_Position / a_Screen_Size) * 2.0 - 1.0;
-			// canvas的 Y 轴坐标方向和 设备坐标系的相反。
-			position = position * vec2(1.0, -1.0);
 			// 最终的顶点坐标。
-			gl_Position = vec4(position, 0.0, 1.0);
+			gl_Position = vec4(a_Position, 0.0, 1.0);
 			v_Color = a_Color;
 		}
 	</script>
@@ -31,67 +27,114 @@
 		precision mediump float;
 		// 用来接收顶点着色器插值后的颜色。
 		varying vec4 v_Color;
-
 		void main(){
-			// 将颜色处理成 GLSL 允许的范围[0， 1]。
-			vec4 color = v_Color / vec4(255, 255, 255, 1);
 			// 点的最终颜色。
-			gl_FragColor = color;
+			gl_FragColor =  v_Color;
 		}
 	</script>
-	<script src="../utils/webgl-helper.js"></script>
+	<!-- <script src="../utils/webgl-helper.js"></script> -->
 	<script>
-
-		//获取canvas
-		let canvas = getCanvas('#canvas');
+		//通过getElementById()方法获取canvas画布
+		const canvas = document.getElementById('webgl');
 		//设置canvas尺寸为满屏
+		//注意设置canvas的尺寸必须在获取WebGL上下文之前调用
 		resizeCanvas(canvas);
-		//获取绘图上下文
-		let gl = getContext(canvas);
+		//通过方法getContext()获取WebGL上下文
+		const gl = canvas.getContext('webgl');
 		//创建着色器程序
-		let program = createSimpleProgramFromScript(gl, 'vertexShader', 'fragmentShader');
-		//使用该着色器程序
-		gl.useProgram(program);
+		let program = initShader(gl);
+		const positions = [];
+		const random = Math.random;
 
-		
-		let a_Screen_Size = gl.getAttribLocation(program, 'a_Screen_Size');
-		gl.vertexAttrib2f(a_Screen_Size, canvas.width, canvas.height);
+		function assignValue(gl,program){
+			let a_Position = gl.getAttribLocation(program, 'a_Position');
+			let a_Color = gl.getAttribLocation(program, 'a_Color');
+			gl.enableVertexAttribArray(a_Position);
+			gl.enableVertexAttribArray(a_Color);
 
-		let positions = [];
+			let buffer = gl.createBuffer();
+			gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+			//将缓冲区中的数据按照一定规律传递给a_Position,表示从缓存区中获取两个浮点型数据(浮点型数据，4个字节)，缓存区一行为4*6个字节，偏移量为0
+			gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, 4*6, 0);
+			gl.vertexAttribPointer(a_Color, 4, gl.FLOAT, false,4*6, 8);
+		}
 
-		let a_Position = gl.getAttribLocation(program, 'a_Position');
-		let a_Color = gl.getAttribLocation(program, 'a_Color');
-		gl.enableVertexAttribArray(a_Position);
-		gl.enableVertexAttribArray(a_Color);
-
-		let buffer = gl.createBuffer();
-		gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-		gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, 24, 0);
-		gl.vertexAttribPointer(a_Color, 4, gl.FLOAT, false, 24, 8);
-		
-		//设置清屏颜色为黑色。
-		gl.clearColor(0, 0, 0, 1);
-
-		canvas.addEventListener("click", e=>{
-			positions.push(e.pageX, e.pageY);
-			let color = randomColor();
-			positions.push(color.r, color.g, color.b, color.a);
-			// 顶点信息为 18 的整数倍即3个顶点时执行绘制操作，因为三角形由三个顶点组成，每个顶点由六个元素组成。
-			if(positions.length % 18 == 0) {
-				gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-				gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
-				
-				render(gl);
+		function initClick() {
+			
+			canvas.addEventListener("click", e => {
+				const color = randomColor();
+				const position = coordTransform(e.pageX, e.pageY)
+				positions.push(...position, ...Object.values(color));
+				// 顶点信息为 18 的整数倍即3个顶点时执行绘制操作，因为三角形由三个顶点组成，每个顶点由六个元素组成。
+				if (positions.length % 18 == 0) {
+					// gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+					gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+					render(gl);
+				}
+			})
+		}
+		function randomColor() {
+			return {
+				r: random(),
+				g: random(),
+				b: random(),
+				a: random()
+			};
+		}
+		//声明初始化着色器函数
+		function initShader(gl) {
+			//顶点着色器源码
+			const vertexShaderSource = document.getElementById('vertexShader').innerText;
+			//片元着色器源码
+			const fragmentShaderSource = document.getElementById('fragmentShader').innerText;
+			const vertexShader = gl.createShader(gl.VERTEX_SHADER);
+			const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+			gl.shaderSource(vertexShader, vertexShaderSource);
+			gl.shaderSource(fragmentShader, fragmentShaderSource);
+			gl.compileShader(vertexShader);
+			gl.compileShader(fragmentShader);
+			const program = gl.createProgram();
+			gl.attachShader(program, vertexShader);
+			gl.attachShader(program, fragmentShader);
+			gl.linkProgram(program);
+			gl.useProgram(program);
+			return program;
+		}
+		//设置canvas的大小
+		function resizeCanvas(canvas, width, height) {
+			if (canvas.width !== width) {
+				canvas.width = width ? width : window.innerWidth;
 			}
-		})
-		function render(gl){
+			if (canvas.height !== height) {
+				canvas.height = height ? height : window.innerHeight;
+			}
+		}
+
+		//屏幕坐标换算成设备坐标系中的坐标(在着色器中的坐标)
+		const { width, height } = canvas;
+		function coordTransform(x, y) {
+			// 将 canvas 的坐标值 转换为 [-1.0, 1.0]的范围。
+			const posisionX = 2 * x / width - 1;
+			// canvas的 Y 轴坐标方向和 设备坐标系的相反。
+			const positionY = -(2 * y / height - 1);
+
+			return [posisionX, positionY];
+		}
+
+		function render(gl) {
+			//设置清屏颜色为黑色。
+			gl.clearColor(0, 0, 0, 1);
 			gl.clear(gl.COLOR_BUFFER_BIT);
 			let primitiveType = gl.TRIANGLES;
-			if(positions.length > 0){
+			if (positions.length > 0) {
 				gl.drawArrays(primitiveType, 0, positions.length / 6);
 			}
 		}
+		assignValue(gl,program)
+		initClick();
 		render(gl);
+
 	</script>
 </body>
+
 </html>

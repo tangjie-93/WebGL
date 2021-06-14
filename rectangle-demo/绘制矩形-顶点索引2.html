@@ -45,35 +45,41 @@
         const count = assignValue(gl, program);
         render(gl, count);
         function assignValue(gl, program) {
-            // 定义组成矩形的4个三角形，共计6个顶点，左边三角形V0->V1->V2;下边三角形 V0->V4->V1;右边三角形 V0->V3->V4;上边三角形 V0->V4-V1 。
-            const positions = new Float32Array([
+            // 定义组成矩形的4个三角形，共计6个顶点
+            let positions = new Float32Array([
                 //V0
-                0.5, 0.5, 1.0, 0.0, 0.0, 1.0,
-                //V1
                 -0.5, 0.5, 1.0, 1.0, 0.0, 1.0,
+                //V1
+                0.5, 0.5, 1.0, 0.0, 0.0, 1.0,
                 //V2
                 0.5, -0.5, 1.0, 1.0, 0.0, 1.0,
-                //V3
                 -0.5, -0.5, 0.0, 1.0, 0.0, 1.0,
             ]);
+            const indexes = new Uint8Array([0, 1, 2, 0, 2, 3]);
+            //创建顶点缓冲区对象
+            let vertexBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
 
-            const a_Position = gl.getAttribLocation(program, 'a_Position');
-            const a_Color = gl.getAttribLocation(program, 'a_Color');
-
+            //创建索引缓冲区对象
+            var indexesBuffer = gl.createBuffer();
+            //绑定缓冲区对象
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexesBuffer);
+            //索引数组indexes数据传入缓冲区
+            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indexes, gl.STATIC_DRAW);
+            let a_Position = gl.getAttribLocation(program, 'a_Position');
+            let a_Color = gl.getAttribLocation(program, 'a_Color');
             gl.enableVertexAttribArray(a_Position);
             gl.enableVertexAttribArray(a_Color);
-            // 创建缓冲区
-            let buffer = gl.createBuffer();
-            // 绑定缓冲区为当前缓冲
-            gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+
             // 设置 a_Position 属性从缓冲区读取数据方式
             gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, 24, 0);
             // 设置 a_Color 属性从缓冲区读取数据方式
             gl.vertexAttribPointer(a_Color, 4, gl.FLOAT, false, 24, 8);
-            // 向缓冲区传递数据
-            gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
-            return positions.length / 6;
+            return indexes.length;
         }
+
+
         //声明初始化着色器函数
         function initShader(gl) {
             //顶点着色器源码
@@ -100,7 +106,7 @@
             //设置清屏颜色为黑色。
             gl.clearColor(0, 0, 0, 1);
             gl.clear(gl.COLOR_BUFFER_BIT);
-            gl.drawArrays(gl.TRIANGLE_STRIP, 0, count);
+            gl.drawElements(gl.TRIANGLES, count, gl.UNSIGNED_BYTE, 0);
         }
     </script>
 </body>
