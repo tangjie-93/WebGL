@@ -540,7 +540,7 @@
   /**
    *根据视角求透视投影矩阵
    *
-   * @param {*} viewRadians
+   * @param {*} viewRadians 视锥的角度大小 视野的角度
    * @param {*} aspect
    * @param {*} near
    * @param {*} far
