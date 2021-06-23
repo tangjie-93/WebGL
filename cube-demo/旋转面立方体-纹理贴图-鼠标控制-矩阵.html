@@ -16,19 +16,13 @@
         //浮点数设置为中等精度
         precision mediump float;
         attribute vec3 apos;
-        uniform mat4 mx;
-        uniform mat4 my;
         uniform mat4 proj;
-        attribute vec4 acolor;
-        varying vec4 vcolor;
         attribute vec2 inUV;
         varying vec2 outUV;
         void main() {
             //两个旋转矩阵、顶点齐次坐标连乘
-            //gl_Position = mx*my*vec4(apos, 1);
             gl_Position=proj*vec4(apos, 1);
             //插值处理
-            vcolor=acolor;
             outUV=inUV;
         }
     </script>
@@ -36,32 +30,31 @@
     <script id="fragmentShader" type="x-shader/x-fragment">
         // 所有float类型数据的精度是lowp
         precision mediump float;
-        varying vec4 vcolor;
         varying vec2 outUV;
         uniform sampler2D texture;
         void main() {
-            gl_FragColor=texture2D(texture,outUV); //vcolor;  //
+            gl_FragColor=texture2D(texture,outUV); 
         }
     </script>
 
     <script>
-        var Vector3 = window.lib3d.Vector3;
-        var Quaternion = window.lib3d.Quaternion;
-        let lastMouseX = 0, lastMouseY = 0;
-        let offsetX = 0, offsetY = 0;
-        let mousedown = false;
-        //通过getElementById()方法获取canvas画布
-        const canvas = document.getElementById('webgl');
-        // resizeCanvas(canvas);
-        //通过方法getContext()获取WebGL上下文
-        const gl = canvas.getContext('webgl');
-        const aspect = canvas.width / canvas.height;
 
-        const projectionMatrix = matrix.ortho(-aspect * 1, aspect * 1, -1, 1, 500, -500);
-        let lastMatrix = matrix.identity();
-        let tempMatrix = matrix.identity();
         let mvp = matrix.identity();
+        let Vector3 = window.lib3d.Vector3;
+        let Quaternion = window.lib3d.Quaternion;
         function init() {
+            let lastMouseX = 0, lastMouseY = 0;
+            let offsetX = 0, offsetY = 0;
+            let mousedown = false;
+            //通过getElementById()方法获取canvas画布
+            const canvas = document.getElementById('webgl');
+            // resizeCanvas(canvas);
+            //通过方法getContext()获取WebGL上下文
+            const gl = canvas.getContext('webgl');
+            const aspect = canvas.width / canvas.height;
+            const projectionMatrix = matrix.ortho(-aspect * 1, aspect * 1, -1, 1, 500, -500);
+            let lastMatrix = matrix.identity();
+            let tempMatrix = matrix.identity();
             //顶点着色器源码
             const vertexShaderSource = document.getElementById('vertexShader').innerText;
 
@@ -70,9 +63,12 @@
             //初始化着色器
             const program = initShader(gl, vertexShaderSource, fragShaderSource);
             initBuffer(gl, program);
+            rotate(gl, canvas, program);
+        }
 
-            var lastQ = new Quaternion();
-            var currentQ = new Quaternion();
+        function rotate(gl, canvas, program) {
+            let lastQ = new Quaternion();
+            let currentQ = new Quaternion();
             canvas.addEventListener('mousedown', (event) => {
                 mousedown = true;
                 const { clientX, clientY } = event;
@@ -82,27 +78,12 @@
                     if (!mousedown) return;
                     const { clientX, clientY } = event;
                     offsetX = (clientX - lastMouseX);
-                    offsetY= (clientY - lastMouseY);
-                    // const factor = 0.6;
-                    // const euler = {
-                    //     x: factor * offsetX * Math.PI / 180,
-                    //     y: factor * (offsetY) * Math.PI / 180,
-                    //     z: 0
-                    // };
-                    // let tempMatrix = matrix.getMatrixFromEuler(euler);
-                    // mvp = matrix.multiply(
-                    //     lastMatrix,
-                    //     tempMatrix
-
-                    // );
-                    // mvp=matrix.multiply(projectionMatrix, mvp);
-
-
-                    var l = Math.sqrt(offsetX * offsetX + offsetY * offsetY);
+                    offsetY = (clientY - lastMouseY);
+                    let l = Math.sqrt(offsetX * offsetX + offsetY * offsetY);
                     if (l == 0) {
                         return;
                     }
-                    var tempQ = Quaternion.fromRotation(
+                    let tempQ = Quaternion.fromRotation(
                         { x: offsetY / l, y: offsetX / l, z: 0 },
                         l / 2
                     );
@@ -116,52 +97,49 @@
                     Object.assign(lastQ, currentQ);
                 })
             })
-
         }
+
         function initBuffer(gl, program) {
             //获取顶点着色器的位置变量apos
             const aposLocation = gl.getAttribLocation(program, 'apos');
-            const acolor = gl.getAttribLocation(program, 'acolor');
             const inUV = gl.getAttribLocation(program, 'inUV');
             const texture = gl.getUniformLocation(program, 'texture');
             //允许数据传递
             gl.enableVertexAttribArray(aposLocation);
             //   //允许数据传递
-            gl.enableVertexAttribArray(acolor);
-            //   //允许数据传递
             gl.enableVertexAttribArray(inUV);
 
             //创建立方体的顶点坐标数据
             const data = new Float32Array([
-                -0.5, -0.5, 0.5, 1, 0, 0, 1, 0.0, 0.0,
-                0.5, -0.5, 0.5, 1, 0, 0, 1, 1.0, 0.0,
-                0.5, 0.5, 0.5, 1, 0, 0, 1, 1.0, 1.0,
-                -0.5, 0.5, 0.5, 1, 0, 0, 1, 0.0, 1.0,
+                -0.5, -0.5, 0.5, 0.0, 0.0,
+                0.5, -0.5, 0.5, 1.0, 0.0,
+                0.5, 0.5, 0.5, 1.0, 1.0,
+                -0.5, 0.5, 0.5, 0.0, 1.0,
 
-                -0.5, 0.5, 0.5, 0, 1, 0, 1, 1.0, 1.0,
-                -0.5, 0.5, -0.5, 0, 1, 0, 1, 0.0, 1.0,
-                -0.5, -0.5, -0.5, 0, 1, 0, 1, 0.0, 0.0,
-                -0.5, -0.5, 0.5, 0, 1, 0, 1, 1.0, 0.0,
+                -0.5, 0.5, 0.5, 1.0, 1.0,
+                -0.5, 0.5, -0.5, 0.0, 1.0,
+                -0.5, -0.5, -0.5, 0.0, 0.0,
+                -0.5, -0.5, 0.5, 1.0, 0.0,
 
-                0.5, 0.5, 0.5, 0, 0, 1, 1, 0.0, 1.0,
-                0.5, -0.5, 0.5, 0, 0, 1, 1, 0.0, 0.0,
-                0.5, -0.5, -0.5, 0, 0, 1, 1, 1.0, 0.0,
-                0.5, 0.5, -0.5, 0, 0, 1, 1, 1.0, 1.0,
+                0.5, 0.5, 0.5, 0.0, 1.0,
+                0.5, -0.5, 0.5, 0.0, 0.0,
+                0.5, -0.5, -0.5, 1.0, 0.0,
+                0.5, 0.5, -0.5, 1.0, 1.0,
 
-                0.5, 0.5, -0.5, 1, 0, 1, 1, 0.0, 1.0,
-                0.5, -0.5, -0.5, 1, 0, 1, 1, 0.0, 0.0,
-                -0.5, -0.5, -0.5, 1, 0, 1, 1, 1.0, 0.0,
-                -0.5, 0.5, -0.5, 1, 0, 1, 1, 1.0, 1.0,
+                0.5, 0.5, -0.5, 0.0, 1.0,
+                0.5, -0.5, -0.5, 0.0, 0.0,
+                -0.5, -0.5, -0.5, 1.0, 0.0,
+                -0.5, 0.5, -0.5, 1.0, 1.0,
 
-                -0.5, 0.5, 0.5, 1, 1, 0, 1, 0.0, 1.0,
-                0.5, 0.5, 0.5, 1, 1, 0, 1, 1.0, 1.0,
-                0.5, 0.5, -0.5, 1, 1, 0, 1, 1.0, 0.0,
-                -0.5, 0.5, -0.5, 1, 1, 0, 1, 0.0, 0.0,
+                -0.5, 0.5, 0.5, 0.0, 1.0,
+                0.5, 0.5, 0.5, 1.0, 1.0,
+                0.5, 0.5, -0.5, 1.0, 0.0,
+                -0.5, 0.5, -0.5, 0.0, 0.0,
 
-                -0.5, -0.5, 0.5, 0, 1, 1, 1, 0.0, 0.0,
-                -0.5, -0.5, -0.5, 0, 1, 1, 1, 0.0, 1.0,
-                0.5, -0.5, -0.5, 0, 1, 1, 1, 1.0, 1.0,
-                0.5, -0.5, 0.5, 0, 1, 1, 1, 1.0, 0.0
+                -0.5, -0.5, 0.5, 0.0, 0.0,
+                -0.5, -0.5, -0.5, 0.0, 1.0,
+                0.5, -0.5, -0.5, 1.0, 1.0,
+                0.5, -0.5, 0.5, 1.0, 0.0
             ]);
             const indexdata = new Uint16Array([
                 0, 1, 2, 0, 2, 3,
@@ -186,9 +164,8 @@
             gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indexdata, gl.STATIC_DRAW);
 
             ///缓冲区中的数据按照一定的规律传递给位置变量apos
-            gl.vertexAttribPointer(aposLocation, 3, gl.FLOAT, false, 4 * 9, 0);
-            gl.vertexAttribPointer(inUV, 2, gl.FLOAT, false, 4 * 9, 4 * 7);
-            gl.vertexAttribPointer(acolor, 4, gl.FLOAT, false, 4 * 9, 4 * 3);
+            gl.vertexAttribPointer(aposLocation, 3, gl.FLOAT, false, 4 * 5, 0);
+            gl.vertexAttribPointer(inUV, 2, gl.FLOAT, false, 4 * 5, 4 * 3);
             // gl.enable(gl.DEPTH_TEST);
             gl.enable(gl.CULL_FACE);
             // render(gl, program, indexdata.length)
@@ -215,15 +192,12 @@
         }
 
         function render(gl, program, count = 36) {
-            rotate(gl, program);
+            const proj = gl.getUniformLocation(program, 'proj');
+            gl.uniformMatrix4fv(proj, false, mvp);
             //设置清屏颜色为黑色。
             gl.clearColor(0, 0, 0, 1);
             gl.clear(gl.COLOR_BUFFER_BIT);
-            // gl.drawArrays(gl.TRIANGLES, 0, count);
             gl.drawElements(gl.TRIANGLES, count, gl.UNSIGNED_SHORT, 0);
-            // requestAnimationFrame(()=>{
-            //     render(gl, program, count=36);
-            // })
         }
         //声明初始化着色器函数
         function initShader(gl, vertexShaderSource, fragmentShaderSource) {
@@ -239,31 +213,6 @@
             gl.linkProgram(program);
             gl.useProgram(program);
             return program;
-        }
-        // const factor = 0.6;
-        // var matrixX = matrix.identity();
-        // var matrixY = matrix.identity();
-
-        function rotate(gl, program) {
-            // matrixY = matrix.rotateY(matrixY,(Math.PI / 180) * offsetY);
-            // matrixX = matrix.rotateX(
-            //   matrixY,
-            //   (Math.PI / 180) * offsetX
-            // );
-            //  matrix.multiply(mvp,matrixX,mvp);
-            // //先绕 Y 轴旋转矩阵。
-            // const rotateY=matrix.rotateY(mvp,offsetY * Math.PI / 180);
-            // //再绕 X 轴旋转
-            // matrix.multiply(
-            //     rotateY,
-            //     matrix.rotationX(-offsetX * Math.PI / 180),
-            //     mvp
-            // );
-
-            // tempMatrix = matrix.multiply(mvp,tempMatrix);
-
-            const proj = gl.getUniformLocation(program, 'proj');
-            gl.uniformMatrix4fv(proj, false, mvp);
         }
     </script>
 </body>
