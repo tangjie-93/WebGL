@@ -26,15 +26,18 @@ width: 100%;">
       }
     </script>
   <script type="shader-source" id="fragmentShader">
-      //浮点数设置为中等精度
-      precision mediump float;
-      // 对应纹理图片的像素数据
-      uniform sampler2D u_Texture;
-      varying vec2 v_Uv;
-      void main(){
-          // 点的最终颜色。
-          gl_FragColor = texture2D(u_Texture, v_Uv);
-      }
+    precision mediump float;
+     
+    uniform sampler2D u_Texture;
+    uniform sampler2D u_Texture1;
+    uniform float anim;
+    varying vec2 v_Uv;
+    void main(){
+        // 点的最终颜色。
+        vec4 color0=texture2D(u_Texture,v_Uv);
+        vec4 color1=texture2D(u_Texture1, vec2(v_Uv.x+anim,v_Uv.y));
+        gl_FragColor = color0*color1;
+    }
     </script>
   <script>
     init();
@@ -59,9 +62,11 @@ width: 100%;">
        
       ]);
       // 找到着色器中的全局变量 u_Color;
-      var u_Texture = gl.getUniformLocation(program, "u_Texture");
-      var a_Position = gl.getAttribLocation(program, "a_Position");
-      var a_Uv = gl.getAttribLocation(program, "a_Uv");
+      const u_Texture = gl.getUniformLocation(program, "u_Texture");
+    const u_Texture1 = gl.getUniformLocation(program, "u_Texture1");
+      const a_Position = gl.getAttribLocation(program, "a_Position");
+      const anim = gl.getUniformLocation(program, "anim");
+      const a_Uv = gl.getAttribLocation(program, "a_Uv");
 
       gl.enableVertexAttribArray(a_Position);
       gl.enableVertexAttribArray(a_Uv);
@@ -74,33 +79,25 @@ width: 100%;">
       // 设置 a_Uv 属性从缓冲区读取数据方式
       gl.vertexAttribPointer(a_Uv, 2, gl.FLOAT, false, 16, 8);
       // // 向缓冲区传递数据
-      loadTexture(gl, '../images/1.jpg', u_Texture, function () {
-        render(gl, positions);
+      loadTexture(gl, '../images/1.jpg', u_Texture, 0);
+      loadTexture(gl, '../images/2.jpg', u_Texture1,1, function () {
+        render(gl,anim, positions);
       })
     }
 
 
 
-    let anim = 0.005;
-    function render(gl, positions) {
-       // 向缓冲区传递数据
-       gl.bufferData(
-        gl.ARRAY_BUFFER,
-        new Float32Array(positions),
-        gl.STATIC_DRAW
-      );
+    let animate = 0;
+    function render(gl,anim, positions) {
+      gl.uniform1f(anim, animate);
       //设置清屏颜色为黑色。
       gl.clearColor(0, 0, 0, 1);
       gl.clear(gl.COLOR_BUFFER_BIT);
       gl.drawArrays(gl.TRIANGLES, 0, positions.length / 4);
-      if (positions.length <= 0) {
-        return;
-      }
-      for (let i = 2; i < positions.length; i += 4) {
-        positions[i] += anim;
-      }
+      if (positions.length <= 0) return;
+      animate += 0.002;
       requestAnimationFrame(()=>{
-        render(gl,positions);
+        render(gl,anim,positions);
       });
      
     }
@@ -123,13 +120,15 @@ width: 100%;">
       gl.useProgram(program);
       return program;
     }
-    function loadTexture(gl, src, attribute, callback) {
+   
+    function loadTexture(gl, src, attribute,index, callback) {
+      const stage = [gl.TEXTURE0, gl.TEXTURE1];
       let img = new Image();
       img.crossOrigin = 'anonymous';
       img.onload = function () {
         let texture = gl.createTexture();//创建纹理图像缓冲区
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true); //纹理图片上下反转,使得图片的左下角与UV坐标原点重合。
-        gl.activeTexture(gl.TEXTURE0);//激活0号纹理单元TEXTURE0
+        gl.activeTexture(stage[index]);//激活0号纹理单元TEXTURE0
         
         gl.bindTexture(gl.TEXTURE_2D, texture);//绑定纹理缓冲区
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img); //设置纹素格式，jpg格式对应gl.RGB,将图片数据传递给 GPU。
@@ -142,7 +141,7 @@ width: 100%;">
         //竖直填充
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
         //给全局变量赋值 1 个整数。
-        gl.uniform1i(attribute, 0);
+        gl.uniform1i(attribute, index);
         callback && callback();
       };
       img.src = src;

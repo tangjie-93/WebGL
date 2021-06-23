@@ -62,7 +62,7 @@
                 -0.5, 0.5, -0.5,
                 -0.5, -0.5, -0.5,
                 0.5, -0.5, -0.5,
-                //上面两组坐标分别对应起来组成一一对
+                //上面两组坐标分别对应起来组成一对
                 0.5, 0.5, 0.5,
                 0.5, 0.5, -0.5,
 
@@ -89,6 +89,9 @@
         }
         function render(gl, program) {
             tranlate(gl,program);
+            //设置清屏颜色为黑色。
+            gl.clearColor(0, 0, 0, 1);
+            gl.clear(gl.COLOR_BUFFER_BIT);
              //LINE_LOOP模式绘制前四个点
             gl.drawArrays(gl.LINE_LOOP,0,4);
             //LINE_LOOP模式从第五个点开始绘制四个点

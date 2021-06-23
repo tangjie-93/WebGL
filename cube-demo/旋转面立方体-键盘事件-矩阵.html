@@ -7,8 +7,8 @@
 
 <body onload="init()">
     <canvas id="webgl" width="500" height="500" style="background-color: #0d72da"></canvas>
-    <script src="../utils/webgl-helper.js"></script>
-    <script src="../utils/vector3.js"></script>
+    <!-- <script src="../utils/webgl-helper.js"></script>
+    <script src="../utils/vector3.js"></script> -->
     <script src="../utils/webgl-matrix.js"></script>
     <!-- 顶点着色器源码 -->
     <script id="vertexShader" type="x-shader/x-vertex">
@@ -40,21 +40,21 @@
     <script>
         let isrotate = false;
         let xaxis = 0, yaxis = 0;
-        //通过getElementById()方法获取canvas画布
-        const canvas = document.getElementById('webgl');
-        //通过方法getContext()获取WebGL上下文
-        const gl = canvas.getContext('webgl');
-        const aspect = canvas.width / canvas.height;
-
-        const projectionMatrix = matrix.ortho(-aspect * 1, aspect * 1, -1, 1, 200, -200);
-        const vertexShaderSource = document.getElementById('vertexShader').innerText;
-        //片元着色器源码
-        const fragShaderSource = document.getElementById('fragmentShader').innerText;
-        //初始化着色器
-        const program = initShader(gl, vertexShaderSource, fragShaderSource);
+        let projectionMatrix;
         function init() {
-            //顶点着色器源码
+            //通过getElementById()方法获取canvas画布
+            const canvas = document.getElementById('webgl');
+            //通过方法getContext()获取WebGL上下文
+            const gl = canvas.getContext('webgl');
 
+            const vertexShaderSource = document.getElementById('vertexShader').innerText;
+            //片元着色器源码
+            const fragShaderSource = document.getElementById('fragmentShader').innerText;
+            //初始化着色器
+            const program = initShader(gl, vertexShaderSource, fragShaderSource);
+            const aspect = canvas.width / canvas.height;
+            projectionMatrix = matrix.ortho(-aspect * 1, aspect * 1, -1, 1, 200, -200);
+            //顶点着色器源码
             initBuffer(gl, program);
             document.addEventListener('keydown', (event) => {
                 const keyCode = event.keyCode;
@@ -62,12 +62,12 @@
                     case 38:
                         //向上旋转
                         xaxis = 1;
-                        yaxis=0;
+                        yaxis = 0;
                         break;
                     case 40:
                         //向下旋转
                         xaxis = -1;
-                        yaxis=0;
+                        yaxis = 0;
                         break;
                     case 37:
                         //想左旋转
@@ -162,7 +162,7 @@
             render(gl, program, indexdata.length)
         }
         function render(gl, program, count = 36) {
-           
+
             rotate(gl, program);
             //设置清屏颜色为黑色。
             gl.clearColor(0, 0, 0, 1);

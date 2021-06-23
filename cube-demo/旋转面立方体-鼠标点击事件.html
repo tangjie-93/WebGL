@@ -14,9 +14,9 @@
         attribute vec3 apos;
         attribute vec4 acolor;
         varying vec4 vcolor;
-        //uniform mat4 mx;
-        //uniform mat4 my;
-        uniform mat4 proj;
+        uniform mat4 mx;
+        uniform mat4 my;
+        //uniform mat4 proj;
         void main() {
             //两个旋转矩阵、顶点齐次坐标连乘
             gl_Position = mx*my*vec4(apos, 1);

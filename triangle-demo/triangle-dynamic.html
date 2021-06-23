@@ -46,7 +46,7 @@
 		const positions = [];
 		const random = Math.random;
 
-		function assignValue(gl,program){
+		function assignValue(gl, program) {
 			let a_Position = gl.getAttribLocation(program, 'a_Position');
 			let a_Color = gl.getAttribLocation(program, 'a_Color');
 			gl.enableVertexAttribArray(a_Position);
@@ -55,12 +55,12 @@
 			let buffer = gl.createBuffer();
 			gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
 			//将缓冲区中的数据按照一定规律传递给a_Position,表示从缓存区中获取两个浮点型数据(浮点型数据，4个字节)，缓存区一行为4*6个字节，偏移量为0
-			gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, 4*6, 0);
-			gl.vertexAttribPointer(a_Color, 4, gl.FLOAT, false,4*6, 8);
+			gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, 4 * 6, 0);
+			gl.vertexAttribPointer(a_Color, 4, gl.FLOAT, false, 4 * 6, 8);
 		}
 
 		function initClick() {
-			
+
 			canvas.addEventListener("click", e => {
 				const color = randomColor();
 				const position = coordTransform(e.pageX, e.pageY)
@@ -111,13 +111,12 @@
 		}
 
 		//屏幕坐标换算成设备坐标系中的坐标(在着色器中的坐标)
-		const { width, height } = canvas;
 		function coordTransform(x, y) {
+			const { width, height } = canvas;
 			// 将 canvas 的坐标值 转换为 [-1.0, 1.0]的范围。
 			const posisionX = 2 * x / width - 1;
 			// canvas的 Y 轴坐标方向和 设备坐标系的相反。
 			const positionY = -(2 * y / height - 1);
-
 			return [posisionX, positionY];
 		}
 
@@ -130,7 +129,7 @@
 				gl.drawArrays(primitiveType, 0, positions.length / 6);
 			}
 		}
-		assignValue(gl,program)
+		assignValue(gl, program)
 		initClick();
 		render(gl);
 

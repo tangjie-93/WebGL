@@ -11,14 +11,14 @@
     <script id="vertexShader" type="x-shader/x-vertex">
         //浮点数设置为中等精度
         precision mediump float;
-        attribute vec3 apos;
+        attribute vec4 apos;
         attribute vec4 acolor;
         varying vec4 vcolor;
         uniform mat4 mx;
         uniform mat4 my;
         void main() {
             //两个旋转矩阵、顶点齐次坐标连乘
-            gl_Position = mx*my*vec4(apos, 1);
+            gl_Position = mx*my*apos;
             vcolor=acolor;
         }
     </script>
@@ -39,22 +39,19 @@
             const canvas = document.getElementById('webgl');
             //通过方法getContext()获取WebGL上下文
             const gl = canvas.getContext('webgl');
-
             //顶点着色器源码
             const vertexShaderSource = document.getElementById('vertexShader').innerText;
-
             //片元着色器源码
             const fragShaderSource = document.getElementById('fragmentShader').innerText;
             //初始化着色器
             const program = initShader(gl, vertexShaderSource, fragShaderSource);
             initBuffer(gl, program);
         }
+        //着色器变量获取及赋值
         function initBuffer(gl, program) {
             //获取顶点着色器的位置变量apos
             const aposLocation = gl.getAttribLocation(program, 'apos');
             const acolor = gl.getAttribLocation(program, 'acolor');
-           
-           
             //创建立方体的顶点坐标数据
             const data = new Float32Array([
                 -0.5, -0.5, 0.5, 1, 0, 0, 1,
@@ -97,12 +94,7 @@
             ])
             vertexBuffer(gl,data,aposLocation,3,'',4*7,0);
             vertexBuffer(gl,indexdata,acolor,4,'index',4*7,12);
-             /**执行绘制之前，一定要开启深度测试，以免颜色混乱
-              * gl.CULL_FACE：表示隐藏正面
-              * gl.DEPTH_TEST：启用深度测试。根据坐标的远近自动隐藏被遮住的图形
-              * **/
-            gl.enable(gl.DEPTH_TEST);
-            // gl.enable(gl.CULL_FACE);
+            
             render(gl, program, indexdata.length)
         }
         function vertexBuffer(gl,data,position,n,type,rowCount=0,offset=0){
@@ -123,6 +115,12 @@
             gl.enableVertexAttribArray(position);
         }
         function render(gl, program, count=36) {
+             /**执行绘制之前，一定要开启深度测试，以免颜色混乱
+              * gl.CULL_FACE：表示隐藏正面
+              * gl.DEPTH_TEST：启用深度测试。根据坐标的远近自动隐藏被遮住的图形
+              * **/
+            gl.enable(gl.DEPTH_TEST);
+            // gl.enable(gl.CULL_FACE);
             tranlate(gl, program);
             //设置清屏颜色为黑色。
             gl.clearColor(0, 0, 0, 1);
@@ -132,14 +130,14 @@
         }
         //声明初始化着色器函数
         function initShader(gl, vertexShaderSource, fragmentShaderSource) {
-            var vertexShader = gl.createShader(gl.VERTEX_SHADER);
-            var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+            const vertexShader = gl.createShader(gl.VERTEX_SHADER);
+            const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
             gl.shaderSource(vertexShader, vertexShaderSource);
             gl.shaderSource(fragmentShader, fragmentShaderSource);
             gl.compileShader(vertexShader);
             gl.compileShader(fragmentShader);
 
-            var program = gl.createProgram();
+            const program = gl.createProgram();
             gl.attachShader(program, vertexShader);
             gl.attachShader(program, fragmentShader);
             gl.linkProgram(program);

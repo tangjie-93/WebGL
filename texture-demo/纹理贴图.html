@@ -6,21 +6,21 @@
   <title>纹理贴图</title>
 </head>
 
-<body>
-  <canvas id="canvas" width="400" height="400"></canvas>
+<body style="display: flex;
+justify-content: center;
+align-items: center;
+height: 100%;
+position: absolute;
+width: 100%;">
+  <canvas id="canvas" width="400" height="400" ></canvas>
   <script type="shader-source" id="vertexShader">
       //浮点数设置为中等精度
       precision mediump float;
       attribute vec2 a_Position;
-      uniform vec2 u_Screen_Size;
       varying vec2 v_Uv;
       attribute vec2 a_Uv;
       void main(){
-          //vec2类型的数据可以直接乘除
-          //position的坐标值在(-1,-1)到(1,1)之间
-          vec2 position = (a_Position / u_Screen_Size) * 2.0 - 1.0;
-          position = position * vec2(1.0, -1.0);
-          gl_Position = vec4(position, 0, 1);
+          gl_Position = vec4(a_Position, 0, 1);
           //纹理坐标差值计算
           v_Uv = a_Uv;
       }
@@ -28,6 +28,7 @@
   <script type="shader-source" id="fragmentShader">
       //浮点数设置为中等精度
       precision mediump float;
+      // 对应纹理图片的像素数据
       uniform sampler2D u_Texture;
       varying vec2 v_Uv;
       void main(){
@@ -35,70 +36,115 @@
           gl_FragColor = texture2D(u_Texture, v_Uv);
       }
     </script>
-  <script src="../utils/webgl-helper.js"></script>
-  <script src="../utils/vector3.js"></script>
-  <script src="../utils/webgl-matrix.js"></script>
   <script>
-    //获取canvas
-    let canvas = document.querySelector("#canvas");
-    //获取绘图上下文
-    let gl = canvas.getContext('webgl');
-    gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
-    //创建着色器程序
-    let program = createSimpleProgramFromScript(
-      gl,
-      "vertexShader",
-      "fragmentShader"
-    );
+    init();
+    function init() {
+      //获取canvas
+      let canvas = document.querySelector("#canvas");
+      //获取绘图上下文
+      let gl = canvas.getContext('webgl');
+  
+      //创建着色器程序
+      let program = initShader(gl);
+      assignValue(gl, program)
+    }
+    function assignValue(gl, program) {
+      let positions = new Float32Array([
+        -0.5, -0.5, 0, 0,
+        -0.5, 0.5, 0, 1,
+        0.5, 0.5, 1, 1,
+        -0.5, -0.5, 0, 0,
+        0.5, 0.5, 1, 1,
+        0.5, -0.5, 1, 0,
+       
+      ]);
+      // 找到着色器中的全局变量 u_Color;
+      var u_Texture = gl.getUniformLocation(program, "u_Texture");
+      var a_Position = gl.getAttribLocation(program, "a_Position");
+      var a_Uv = gl.getAttribLocation(program, "a_Uv");
 
-    //使用该着色器程序
-    gl.useProgram(program);
-    let positions =new Float32Array([
-    30, 30, 0, 0,
-      30, 370, 0, 1,
-      370, 370, 1, 1,
-      30, 30, 0, 0,
-      370, 370, 1, 1,
-      370, 30, 1, 0
-    ]);
-
-    // 随机生成一个颜色。
-    var color = randomColor();
-    // 找到着色器中的全局变量 u_Color;
-    var u_Texture = gl.getUniformLocation(program, "u_Texture");
-    var u_Screen_Size = gl.getUniformLocation(program, "u_Screen_Size");
-    gl.uniform2f(u_Screen_Size, canvas.width, canvas.height);
-    var a_Position = gl.getAttribLocation(program, "a_Position");
-    var a_Uv = gl.getAttribLocation(program, "a_Uv");
-
-    gl.enableVertexAttribArray(a_Position);
-    gl.enableVertexAttribArray(a_Uv);
-    // 创建缓冲区
-    var buffer = gl.createBuffer();
-    // 绑定缓冲区为当前缓冲
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-    // 设置 a_Position 属性从缓冲区读取数据方式
-    gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, 16, 0);
-    // 设置 a_Uv 属性从缓冲区读取数据方式
-    gl.vertexAttribPointer(a_Uv, 2, gl.FLOAT, false, 16, 8);
-    // 向缓冲区传递数据
-    gl.bufferData(
-      gl.ARRAY_BUFFER,
-      positions,
-      gl.STATIC_DRAW
-    );
-    //设置清屏颜色为黑色。
-    gl.clearColor(0, 0, 0, 1);
-    function render() {
-      gl.clear(gl.COLOR_BUFFER_BIT);
-      gl.drawArrays(gl.TRIANGLES, 0, positions.length / 4);
-
+      gl.enableVertexAttribArray(a_Position);
+      gl.enableVertexAttribArray(a_Uv);
+      // 创建缓冲区
+      var buffer = gl.createBuffer();
+      // 绑定缓冲区为当前缓冲
+      gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+      // 设置 a_Position 属性从缓冲区读取数据方式
+      gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, 16, 0);
+      // 设置 a_Uv 属性从缓冲区读取数据方式
+      gl.vertexAttribPointer(a_Uv, 2, gl.FLOAT, false, 16, 8);
+      // 向缓冲区传递数据
+      gl.bufferData(
+        gl.ARRAY_BUFFER,
+        positions,
+        gl.STATIC_DRAW
+      );
+      loadTexture(gl, '../images/1.jpg', u_Texture, function () {
+        render(gl, positions.length / 4);
+      })
     }
 
-    loadTexture(gl, '../images/1.jpg', u_Texture, function () {
-      render();
-    })
+
+
+    function render(gl, count) {
+      //设置清屏颜色为黑色。
+      gl.clearColor(0, 0, 0, 1);
+      // 清除屏幕
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.drawArrays(gl.TRIANGLES, 0, count);
+    }
+    //声明初始化着色器函数
+    function initShader(gl) {
+      //顶点着色器源码
+      const vertexShaderSource = document.getElementById('vertexShader').innerText;
+      //片元着色器源码
+      const fragmentShaderSource = document.getElementById('fragmentShader').innerText;
+      const vertexShader = gl.createShader(gl.VERTEX_SHADER);
+      const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+      gl.shaderSource(vertexShader, vertexShaderSource);
+      gl.shaderSource(fragmentShader, fragmentShaderSource);
+      gl.compileShader(vertexShader);
+      gl.compileShader(fragmentShader);
+      const program = gl.createProgram();
+      gl.attachShader(program, vertexShader);
+      gl.attachShader(program, fragmentShader);
+      gl.linkProgram(program);
+      gl.useProgram(program);
+      return program;
+    }
+    function loadTexture(gl, src, attribute, callback) {
+      let img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = function () {
+        let texture = gl.createTexture();//创建纹理图像缓冲区
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true); //纹理图片上下反转,使得图片的左下角与UV坐标原点重合。
+        gl.activeTexture(gl.TEXTURE0);//激活0号纹理单元TEXTURE0
+        
+        gl.bindTexture(gl.TEXTURE_2D, texture);//绑定纹理缓冲区
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img); //设置纹素格式，jpg格式对应gl.RGB,将图片数据传递给 GPU。
+        //设置纹理贴图填充方式(纹理贴图像素尺寸小于顶点绘制区域像素尺寸)
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+         //设置纹理贴图填充方式(纹理贴图像素尺寸大于顶点绘制区域像素尺寸)
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        // 水平填充
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+        //竖直填充
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+        //给全局变量赋值 1 个整数。纹理缓冲区单元TEXTURE0中的颜色数据传入片元着色器
+        gl.uniform1i(attribute, 0);
+        callback && callback();
+      };
+      img.src = src;
+    }
+    //设置canvas的大小
+		function resizeCanvas(canvas, width, height) {
+			if (canvas.width !== width) {
+				canvas.width = width ? width : window.innerWidth;
+			}
+			if (canvas.height !== height) {
+				canvas.height = height ? height : window.innerHeight;
+			}
+		}
   </script>
 </body>
-
 </html>

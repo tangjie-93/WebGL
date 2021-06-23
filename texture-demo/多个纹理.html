@@ -3,8 +3,7 @@
 
 <head>
   <meta charset="UTF-8" />
-  <title>纹理贴图</title>
-  <link rel="stylesheet" href="../css/common.css" />
+  <title>多个纹理</title>
 </head>
 
 <body>
@@ -114,8 +113,8 @@
     }
 
 
-    loadTexture(gl, '../img/wave.jpg', u_Texture, 0);
-    loadTexture(gl, '../img/2.jpg', u_Texture1, 1, render);
+    loadTexture(gl, '../images/1.jpg', u_Texture, 0);
+    loadTexture(gl, '../images/2.jpg', u_Texture1, 1, render);
     const stage = [gl.TEXTURE0, gl.TEXTURE1];
     function loadTexture(gl, src, attribute, index, callBack) {
       let img = new Image();
