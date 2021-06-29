@@ -1,14 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <title>深度测试和α融合</title>
+  <meta charset="UTF-8">
+  <title>深度测试和α融合</title>
 </head>
-<body>
+
+<body onload="init()">
   <!-- #0d72da -->
-<canvas id="webgl" width="500" height="500" style="background-color: #000"></canvas>
-<!-- 顶点着色器源码 -->
-<script id="vertexShader" type="x-shader/x-vertex">
+  <canvas id="webgl" width="500" height="500" style="background-color: #000"></canvas>
+  <!-- 顶点着色器源码 -->
+  <script id="vertexShader" type="x-shader/x-vertex">
   //attribute声明vec4类型变量apos
   attribute vec4 apos;
   // attribute声明顶点颜色变量
@@ -17,7 +19,7 @@
   varying vec4 v_color;
   void main() {
     //设置几何体轴旋转角度为45度，并把角度值转化为弧度值
-    float radian = radians(45.0);
+    float radian = radians(30.0);
     //求解旋转角度余弦值
     float cos = cos(radian);
     //求解旋转角度正弦值
@@ -41,8 +43,8 @@
   }
 
 </script>
-<!-- 片元着色器源码 -->
-<script id="fragmentShader" type="x-shader/x-fragment">
+  <!-- 片元着色器源码 -->
+  <script id="fragmentShader" type="x-shader/x-fragment">
   // 所有float类型数据的精度是lowp
   precision lowp float;
   // 接收顶点着色器中v_color数据
@@ -54,109 +56,123 @@
 
 </script>
 
-<script>
-    //通过getElementById()方法获取canvas画布
-    var canvas=document.getElementById('webgl');
-    //通过方法getContext()获取WebGL上下文
-    var gl=canvas.getContext('webgl');
+  <script>
+    function init() {
+      //通过getElementById()方法获取canvas画布
+      var canvas = document.getElementById('webgl');
+      //通过方法getContext()获取WebGL上下文
+      var gl = canvas.getContext('webgl');
 
-    //顶点着色器源码
-    var vertexShaderSource = document.getElementById( 'vertexShader' ).innerText;
+      //顶点着色器源码
+      var vertexShaderSource = document.getElementById('vertexShader').innerText;
 
-    //片元着色器源码
-    var fragShaderSource = document.getElementById( 'fragmentShader' ).innerText;
-    //初始化着色器
-    var program = initShader(gl,vertexShaderSource,fragShaderSource);
-    /**
-     从program对象获取顶点位置变量apos、颜色变量a_color
-     **/
-    var aposLocation = gl.getAttribLocation(program,'apos');
-    var a_color = gl.getAttribLocation(program,'a_color');
-    /**
-     创建顶点位置数据数组data,Javascript中小数点前面的0可以省略
-     **/
-    var data=new Float32Array([
+      //片元着色器源码
+      var fragShaderSource = document.getElementById('fragmentShader').innerText;
+      //初始化着色器
+      var program = initShader(gl, vertexShaderSource, fragShaderSource);
+      assignValue(gl,program);
+
+    }
+    function assignValue(gl,program) {
+      /**
+      从program对象获取顶点位置变量apos、颜色变量a_color
+      **/
+      const aposLocation = gl.getAttribLocation(program, 'apos');
+      const a_color = gl.getAttribLocation(program, 'a_color');
+      /**
+       创建顶点位置数据数组data,Javascript中小数点前面的0可以省略
+       **/
+      const data = new Float32Array([
         //        立方体1
-        .5,.5,.5,-.5,.5,.5,-.5,-.5,.5,.5,.5,.5,-.5,-.5,.5,.5,-.5,.5,      //面1
-        .5,.5,.5,.5,-.5,.5,.5,-.5,-.5,.5,.5,.5,.5,-.5,-.5,.5,.5,-.5,      //面2
-        .5,.5,.5,.5,.5,-.5,-.5,.5,-.5,.5,.5,.5,-.5,.5,-.5,-.5,.5,.5,      //面3
-        -.5,.5,.5,-.5,.5,-.5,-.5,-.5,-.5,-.5,.5,.5,-.5,-.5,-.5,-.5,-.5,.5,//面4
-        -.5,-.5,-.5,.5,-.5,-.5,.5,-.5,.5,-.5,-.5,-.5,.5,-.5,.5,-.5,-.5,.5,//面5
-        .5,-.5,-.5,-.5,-.5,-.5,-.5,.5,-.5,.5,-.5,-.5,-.5,.5,-.5,.5,.5,-.5, //面6
+        .5, .5, .5, -.5, .5, .5, -.5, -.5, .5, .5, .5, .5, -.5, -.5, .5, .5, -.5, .5,      //面1
+        .5, .5, .5, .5, -.5, .5, .5, -.5, -.5, .5, .5, .5, .5, -.5, -.5, .5, .5, -.5,      //面2
+        .5, .5, .5, .5, .5, -.5, -.5, .5, -.5, .5, .5, .5, -.5, .5, -.5, -.5, .5, .5,      //面3
+        -.5, .5, .5, -.5, .5, -.5, -.5, -.5, -.5, -.5, .5, .5, -.5, -.5, -.5, -.5, -.5, .5,//面4
+        -.5, -.5, -.5, .5, -.5, -.5, .5, -.5, .5, -.5, -.5, -.5, .5, -.5, .5, -.5, -.5, .5,//面5
+        .5, -.5, -.5, -.5, -.5, -.5, -.5, .5, -.5, .5, -.5, -.5, -.5, .5, -.5, .5, .5, -.5, //面6
         //        立方体2
-        .2,.2,.2,-.2,.2,.2,-.2,-.2,.2,.2,.2,.2,-.2,-.2,.2,.2,-.2,.2,      //面1
-        .2,.2,.2,.2,-.2,.2,.2,-.2,-.2,.2,.2,.2,.2,-.2,-.2,.2,.2,-.2,      //面2
-        .2,.2,.2,.2,.2,-.2,-.2,.2,-.2,.2,.2,.2,-.2,.2,-.2,-.2,.2,.2,      //面2
-        -.2,.2,.2,-.2,.2,-.2,-.2,-.2,-.2,-.2,.2,.2,-.2,-.2,-.2,-.2,-.2,.2,//面4
-        -.2,-.2,-.2,.2,-.2,-.2,.2,-.2,.2,-.2,-.2,-.2,.2,-.2,.2,-.2,-.2,.2,//面2
-        .2,-.2,-.2,-.2,-.2,-.2,-.2,.2,-.2,.2,-.2,-.2,-.2,.2,-.2,.2,.2,-.2 //面6
-    ]);
-    /**
-     创建顶点颜色数组colorData
-     **/
-    var colorData = new Float32Array([
-        //        立方体1，透明度0.6
-        1,0,0,0.6, 1,0,0,0.6, 1,0,0,0.6, 1,0,0,0.6, 1,0,0,0.6, 1,0,0,0.6,//红色——面1
-        0,1,0,0.6, 0,1,0,0.6, 0,1,0,0.6, 0,1,0,0.6, 0,1,0,0.6, 0,1,0,0.6,//绿色——面2
-        0,0,1,0.6, 0,0,1,0.6, 0,0,1,0.6, 0,0,1,0.6, 0,0,1,0.6, 0,0,1,0.6,//蓝色——面3
+        .2, .2, .2, -.2, .2, .2, -.2, -.2, .2, .2, .2, .2, -.2, -.2, .2, .2, -.2, .2,      //面1
+        .2, .2, .2, .2, -.2, .2, .2, -.2, -.2, .2, .2, .2, .2, -.2, -.2, .2, .2, -.2,      //面2
+        .2, .2, .2, .2, .2, -.2, -.2, .2, -.2, .2, .2, .2, -.2, .2, -.2, -.2, .2, .2,      //面2
+        -.2, .2, .2, -.2, .2, -.2, -.2, -.2, -.2, -.2, .2, .2, -.2, -.2, -.2, -.2, -.2, .2,//面4
+        -.2, -.2, -.2, .2, -.2, -.2, .2, -.2, .2, -.2, -.2, -.2, .2, -.2, .2, -.2, -.2, .2,//面2
+        .2, -.2, -.2, -.2, -.2, -.2, -.2, .2, -.2, .2, -.2, -.2, -.2, .2, -.2, .2, .2, -.2 //面6
+      ]);
+      /**
+       创建顶点颜色数组colorData
+       **/
+      const colorData = new Float32Array([
+        //        立方体1，透明度1.0
+        1, 0, 0, 1.0, 1, 0, 0, 1.0, 1, 0, 0, 1.0, 1, 0, 0, 1.0, 1, 0, 0, 1.0, 1, 0, 0, 1.0,//红色——面1
+        0, 1, 0, 1.0, 0, 1, 0, 1.0, 0, 1, 0, 1.0, 0, 1, 0, 1.0, 0, 1, 0, 1.0, 0, 1, 0, 1.0,//绿色——面2
+        0, 0, 1, 1.0, 0, 0, 1, 1.0, 0, 0, 1, 1.0, 0, 0, 1, 1.0, 0, 0, 1, 1.0, 0, 0, 1, 1.0,//蓝色——面3
 
-        1,1,0,0.6, 1,1,0,0.6, 1,1,0,0.6, 1,1,0,0.6, 1,1,0,0.6, 1,1,0,0.6,//黄色——面4
-        0,0,0,0.6, 0,0,0,0.6, 0,0,0,0.6, 0,0,0,0.6, 0,0,0,0.6, 0,0,0,0.6,//黑色——面5
-        1,1,1,0.6, 1,1,1,0.6, 1,1,1,0.6, 1,1,1,0.6, 1,1,1,0.6, 1,1,1,0.6, //白色——面6
+        1, 1, 0, 1.0, 1, 1, 0, 1.0, 1, 1, 0, 1.0, 1, 1, 0, 1.0, 1, 1, 0, 1.0, 1, 1, 0, 1.0,//黄色——面4
+        0, 0, 0, 1.0, 0, 0, 0, 1.0, 0, 0, 0, 1.0, 0, 0, 0, 1.0, 0, 0, 0, 1.0, 0, 0, 0, 1.0,//黑色——面5
+        1, 1, 1, 1.0, 1, 1, 1, 1.0, 1, 1, 1, 1.0, 1, 1, 1, 1.0, 1, 1, 1, 1.0, 1, 1, 1, 1.0, //白色——面6
         //        立方体2，不透明，A分量为1
-        1,0,0,1.0, 1,0,0,1.0, 1,0,0,1.0, 1,0,0,1.0, 1,0,0,1.0, 1,0,0,1.0,//红色——面1
-        0,1,0,1.0, 0,1,0,1.0, 0,1,0,1.0, 0,1,0,1.0, 0,1,0,1.0, 0,1,0,1.0,//绿色——面2
-        0,0,1,1.0, 0,0,1,1.0, 0,0,1,1.0, 0,0,1,1.0, 0,0,1,1.0, 0,0,1,1.0,//蓝色——面3
+        1, 0, 0, 1.0, 1, 0, 0, 1.0, 1, 0, 0, 1.0, 1, 0, 0, 1.0, 1, 0, 0, 1.0, 1, 0, 0, 1.0,//红色——面1
+        0, 1, 0, 1.0, 0, 1, 0, 1.0, 0, 1, 0, 1.0, 0, 1, 0, 1.0, 0, 1, 0, 1.0, 0, 1, 0, 1.0,//绿色——面2
+        0, 0, 1, 1.0, 0, 0, 1, 1.0, 0, 0, 1, 1.0, 0, 0, 1, 1.0, 0, 0, 1, 1.0, 0, 0, 1, 1.0,//蓝色——面3
 
-        1,1,0,1.0, 1,1,0,1.0, 1,1,0,1.0, 1,1,0,1.0, 1,1,0,1.0, 1,1,0,1.0,//黄色——面4
-        0,0,0,1.0, 0,0,0,1.0, 0,0,0,1.0, 0,0,0,1.0, 0,0,0,1.0, 0,0,0,1.0,//黑色——面5
-        1,1,1,1.0, 1,1,1,1.0, 1,1,1,1.0, 1,1,1,1.0, 1,1,1,1.0, 1,1,1,1.0 //白色——面6
-    ]);
-    /**
-     创建缓冲区colorBuffer，传入顶点颜色数据colorData
-     **/
-    var colorBuffer=gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER,colorBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER,colorData,gl.STATIC_DRAW);
-    gl.vertexAttribPointer(a_color,4,gl.FLOAT,false,0,0);
-    gl.enableVertexAttribArray(a_color);
-    /**
-     创建缓冲区buffer，传入顶点位置数据data
-     **/
-    var buffer=gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
-    gl.bufferData(gl.ARRAY_BUFFER,data,gl.STATIC_DRAW);
-    gl.vertexAttribPointer(aposLocation,3,gl.FLOAT,false,0,0);
-    gl.enableVertexAttribArray(aposLocation);
+        1, 1, 0, 1.0, 1, 1, 0, 1.0, 1, 1, 0, 1.0, 1, 1, 0, 1.0, 1, 1, 0, 1.0, 1, 1, 0, 1.0,//黄色——面4
+        0, 0, 0, 1.0, 0, 0, 0, 1.0, 0, 0, 0, 1.0, 0, 0, 0, 1.0, 0, 0, 0, 1.0, 0, 0, 0, 1.0,//黑色——面5
+        1, 1, 1, 1.0, 1, 1, 1, 1.0, 1, 1, 1, 1.0, 1, 1, 1, 1.0, 1, 1, 1, 1.0, 1, 1, 1, 1.0 //白色——面6
+      ]);
+      /**
+       创建缓冲区colorBuffer，传入顶点颜色数据colorData
+       **/
+      const colorBuffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER, colorData, gl.STATIC_DRAW);
+      gl.vertexAttribPointer(a_color, 4, gl.FLOAT, false, 0, 0);
+      gl.enableVertexAttribArray(a_color);
+      /**
+       创建缓冲区buffer，传入顶点位置数据data
+       **/
+      const buffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+      gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+      gl.vertexAttribPointer(aposLocation, 3, gl.FLOAT, false, 0, 0);
+      gl.enableVertexAttribArray(aposLocation);
 
-    /**
-     * 开启深度测试并设置颜色融合单元
-     **/
-    gl.enable(gl.DEPTH_TEST);//开启深度测试
-    gl.enable(gl.BLEND);//开启颜色融合单元
-    gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
-    /**执行绘制命令**/
-    gl.drawArrays(gl.TRIANGLES,36,36);//先绘制不透明的立方体
-    gl.drawArrays(gl.TRIANGLES,0,36);//后绘制透明的立方体
+      /**
+       * 开启深度测试并设置颜色融合单元
+       **/
+      gl.enable(gl.DEPTH_TEST);//开启深度测试
+      gl.enable(gl.BLEND);//开启颜色融合单元
+      gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+      render(gl)
+    }
+    function render(gl) {
+      gl.clearColor(0, 0, 0, 1);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      /**执行绘制命令**/
+      gl.drawArrays(gl.TRIANGLES, 36, 36);//先绘制不透明的立方体
+      gl.drawArrays(gl.TRIANGLES, 0, 36);//后绘制透明的立方体
+    }
+
+
 
 
     /**
      初始化函数initShader()
      **/
-    function initShader(gl,vertexShaderSource,fragmentShaderSource){
-        var vertexShader = gl.createShader(gl.VERTEX_SHADER);
-        var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-        gl.shaderSource(vertexShader,vertexShaderSource);
-        gl.shaderSource(fragmentShader,fragmentShaderSource);
-        gl.compileShader(vertexShader);
-        gl.compileShader(fragmentShader);
-        var program = gl.createProgram();
-        gl.attachShader(program,vertexShader);
-        gl.attachShader(program,fragmentShader);
-        gl.linkProgram(program);
-        gl.useProgram(program);
-        return program;
+    function initShader(gl, vertexShaderSource, fragmentShaderSource) {
+      var vertexShader = gl.createShader(gl.VERTEX_SHADER);
+      var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+      gl.shaderSource(vertexShader, vertexShaderSource);
+      gl.shaderSource(fragmentShader, fragmentShaderSource);
+      gl.compileShader(vertexShader);
+      gl.compileShader(fragmentShader);
+      var program = gl.createProgram();
+      gl.attachShader(program, vertexShader);
+      gl.attachShader(program, fragmentShader);
+      gl.linkProgram(program);
+      gl.useProgram(program);
+      return program;
     }
-</script>
+  </script>
 </body>
+
 </html>
