@@ -9,31 +9,16 @@
     <canvas id="webgl" width="500" height="500" style="background-color: #0d72da"></canvas>
     <!-- 顶点着色器源码 -->
     <script id="vertexShader" type="x-shader/x-vertex">
-        //浮点数设置为中等精度
-        precision mediump float;
-        attribute vec4 apos;
-        attribute vec4 acolor;
-        varying vec4 vcolor;
-        uniform mat4 mx;
-        uniform mat4 my;
-        void main() {
-            //两个旋转矩阵、顶点齐次坐标连乘
-            gl_Position = mx*my*apos;
-            vcolor=acolor;
-        }
+        //浮点数设置为中等精度 precision mediump float; attribute vec4 apos; attribute vec4 acolor; varying vec4 vcolor; uniform mat4 mx; uniform mat4 my; void main() { //两个旋转矩阵、顶点齐次坐标连乘 gl_Position = mx*my*apos; vcolor=acolor; }
     </script>
     <!-- 片元着色器源码 -->
     <script id="fragmentShader" type="x-shader/x-fragment">
-        // 所有float类型数据的精度是lowp
-        precision mediump float;
-        varying vec4 vcolor;
-        void main() {
-            gl_FragColor =vcolor;
-        }
+        // 所有float类型数据的精度是lowp precision mediump float; varying vec4 vcolor; void main() { gl_FragColor =vcolor; }
     </script>
 
     <script>
-        let rotate=false;
+        let rotate = false;
+
         function init() {
             //通过getElementById()方法获取canvas画布
             const canvas = document.getElementById('webgl');
@@ -52,21 +37,16 @@
             //获取顶点着色器的位置变量apos
             const aposLocation = gl.getAttribLocation(program, 'apos');
             const acolor = gl.getAttribLocation(program, 'acolor');
-              //允许数据传递
-              gl.enableVertexAttribArray(aposLocation);
-                //允许数据传递
-                gl.enableVertexAttribArray(acolor);
+            //允许数据传递
+            gl.enableVertexAttribArray(aposLocation);
+            //允许数据传递
+            gl.enableVertexAttribArray(acolor);
             //创建立方体的顶点坐标数据
-            const data = new Float32Array([
-                -0.5, -0.5, 0.5, 1, 0, 0, 1,
+            const data = new Float32Array([-0.5, -0.5, 0.5, 1, 0, 0, 1,
                 0.5, -0.5, 0.5, 1, 0, 0, 1,
-                0.5, 0.5, 0.5, 1, 0, 0, 1,
-                -0.5, 0.5, 0.5, 1, 0, 0, 1,
+                0.5, 0.5, 0.5, 1, 0, 0, 1, -0.5, 0.5, 0.5, 1, 0, 0, 1,
 
-                -0.5, 0.5, 0.5, 0, 1, 0, 1,
-                -0.5, 0.5, -0.5, 0, 1, 0, 1,
-                -0.5, -0.5, -0.5, 0, 1, 0, 1,
-                -0.5, -0.5, 0.5, 0, 1, 0, 1,
+                -0.5, 0.5, 0.5, 0, 1, 0, 1, -0.5, 0.5, -0.5, 0, 1, 0, 1, -0.5, -0.5, -0.5, 0, 1, 0, 1, -0.5, -0.5, 0.5, 0, 1, 0, 1,
 
                 0.5, 0.5, 0.5, 0, 0, 1, 1,
                 0.5, -0.5, 0.5, 0, 0, 1, 1,
@@ -74,17 +54,13 @@
                 0.5, 0.5, -0.5, 0, 0, 1, 1,
 
                 0.5, 0.5, -0.5, 1, 0, 1, 1,
-                0.5, -0.5, -0.5, 1, 0, 1, 1,
-                -0.5, -0.5, -0.5, 1, 0, 1, 1,
-                -0.5, 0.5, -0.5, 1, 0, 1, 1,
+                0.5, -0.5, -0.5, 1, 0, 1, 1, -0.5, -0.5, -0.5, 1, 0, 1, 1, -0.5, 0.5, -0.5, 1, 0, 1, 1,
 
                 -0.5, 0.5, 0.5, 1, 1, 0, 1,
                 0.5, 0.5, 0.5, 1, 1, 0, 1,
-                0.5, 0.5, -0.5, 1, 1, 0, 1,
-                -0.5, 0.5, -0.5, 1, 1, 0, 1,
+                0.5, 0.5, -0.5, 1, 1, 0, 1, -0.5, 0.5, -0.5, 1, 1, 0, 1,
 
-                -0.5, -0.5, 0.5, 0, 1, 1, 1,
-                -0.5, -0.5, -0.5, 0, 1, 1, 1,
+                -0.5, -0.5, 0.5, 0, 1, 1, 1, -0.5, -0.5, -0.5, 0, 1, 1, 1,
                 0.5, -0.5, -0.5, 0, 1, 1, 1,
                 0.5, -0.5, 0.5, 0, 1, 1, 1,
             ]);
@@ -96,49 +72,51 @@
                 16, 17, 18, 16, 18, 19,
                 20, 21, 22, 20, 22, 23
             ])
-            vertexBuffer(gl,data);
-            vertexBuffer(gl,indexdata,'index');
-              ///缓冲区中的数据按照一定的规律传递给变量
-              gl.vertexAttribPointer(aposLocation, 3, gl.FLOAT, false, 28, 0);
-              gl.vertexAttribPointer(acolor, 4, gl.FLOAT, false, 28, 12);
-            
+            vertexBuffer(gl, data);
+            vertexBuffer(gl, indexdata, 'index');
+            ///缓冲区中的数据按照一定的规律传递给变量
+            gl.vertexAttribPointer(aposLocation, 3, gl.FLOAT, false, 28, 0);
+            gl.vertexAttribPointer(acolor, 4, gl.FLOAT, false, 28, 12);
+
             render(gl, program, indexdata.length)
         }
-        function vertexBuffer(gl,data,type){
-             //创建缓冲区对象
-             const buffer = gl.createBuffer();
-             if(type==='index'){
+
+        function vertexBuffer(gl, data, type) {
+            //创建缓冲区对象
+            const buffer = gl.createBuffer();
+            if (type === 'index') {
                 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffer);
                 gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, data, gl.STATIC_DRAW);
-             }else{
-                 //绑定缓冲区对象
+            } else {
+                //绑定缓冲区对象
                 gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
                 //顶点数组data数据传入缓冲区
                 gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
-             }
-           
+            }
+
         }
-        function render(gl, program, count=36) {
-             //设置清屏颜色为黑色。
-             gl.clearColor(0, 0, 0, 1);
-             /**执行绘制之前，一定要开启深度测试，以免颜色混乱
-              * gl.CULL_FACE：表示隐藏正面
-              * gl.DEPTH_TEST：启用深度测试。根据坐标的远近自动隐藏被遮住的图形
-              * **/
+
+        function render(gl, program, count = 36) {
+            //设置清屏颜色为黑色。
+            gl.clearColor(0, 0, 0, 1);
+            /**执行绘制之前，一定要开启深度测试，以免颜色混乱
+             * gl.CULL_FACE：表示隐藏正面
+             * gl.DEPTH_TEST：启用深度测试。根据坐标的远近自动隐藏被遮住的图形
+             * **/
 
             //开启深度测试 gl.depthFunc(func) 默认值是gl.LESS 如果传入值小于深度缓冲值，则通过
             gl.enable(gl.DEPTH_TEST);
             // //剔除背面
-            gl.enable(gl.CULL_FACE);
+            // gl.enable(gl.CULL_FACE);
             gl.cullFace(gl.FRONT)
 
-            console.log(gl.getParameter(gl.CULL_FACE_MODE)===gl.BACK);
+            console.log(gl.getParameter(gl.CULL_FACE_MODE) === gl.BACK);
             console.log(gl.getParameter(gl.DEPTH_FUNC) === gl.LESS);
             tranlate(gl, program);
-           
+
             // gl.COLOR_BUFFER_BIT||
-            gl.clear(gl.DEPTH_BUFFER_BIT|gl.COLOR_BUFFER_BIT);
-            
+            gl.clear(gl.DEPTH_BUFFER_BIT | gl.COLOR_BUFFER_BIT);
+
             gl.drawElements(gl.TRIANGLES, count, gl.UNSIGNED_SHORT, 0);
         }
         //声明初始化着色器函数
@@ -157,7 +135,8 @@
             gl.useProgram(program);
             return program;
         }
-        let angle=10.0;
+        let angle = 10.0;
+
         function tranlate(gl, program) {
             const rad = angle * Math.PI / 180;
             const cos = Math.cos(rad);
@@ -171,9 +150,9 @@
 
             const my = gl.getUniformLocation(program, 'my');
             const myArr = new Float32Array([
-                cos, 0, -sin, 0,  0, 1, 0, 0,  sin, 0, cos, 0,  0, 0, 0, 1
+                cos, 0, -sin, 0, 0, 1, 0, 0, sin, 0, cos, 0, 0, 0, 0, 1
             ])
-            
+
             gl.uniformMatrix4fv(my, false, myArr);
         }
     </script>
