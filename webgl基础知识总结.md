@@ -99,6 +99,17 @@ vec3 v3 = cross(v1, v2);
 + 两个向量之间的距离
 + 向量基本运算（相加 、相减、相乘、相除）
 
+**向量的表示方式**
+`GLSL` 程序中有一个向量数据结构 vec，我们经常使用它来定义点坐标或者向量。如何判断 P 代表向量还是代表顶点坐标呢？通常使用**齐次坐标系**来解决这种混乱。
+```ini
+vec3 p = vec3(x, y, z);
+```
++ 齐次坐标系：齐次坐标系使用 `N + 1` 维向量来表示 N 维点坐标和 N 维向量。3维坐标系中，有一个点(X, Y, Z)，那么在齐次坐标系中会使用 4 维向量来表示它 (X, Y, Z, W)。
+**注意：** W 为 0 时代表向量。W 不为 0 代表点。
+齐次坐标除了能够区分点和向量，还有两大用处：
+> 1、模拟透视投影效果。
+> 2、用矩阵来表示平移变换。
+
 ##### 3.2 矩阵
 
 **矩阵分类**
@@ -287,7 +298,7 @@ gl.enableVertexAttribArray(aposLocation);
 **纹理采样**
 ```js
 // 接收插值后的纹理坐标
-varying vec2 v_TexCoord;
+constying vec2 v_TexCoord;
 // 纹理图片像素数据
 uniform sampler2D u_Sampler;
 void main() {
@@ -346,19 +357,19 @@ void main(){
 结果如下图所示：
 <img src="./images/gl_FragCoord.png" width='400' />
 
-## 3、限定符之attribute和uniform以及varying的区别
-`attribute` 和 `uniform` 关键字的目的主要是为了 `javascript` 语言可以通过相关的WebGL API把一些数据传递给着色器。而`varying` 主要是将顶点着色器中的数据传递给片元着色器。
+## 3、限定符之attribute和uniform以及constying的区别
+`attribute` 和 `uniform` 关键字的目的主要是为了 `javascript` 语言可以通过相关的WebGL API把一些数据传递给着色器。而`constying` 主要是将顶点着色器中的数据传递给片元着色器。
 | 变量类型 | 数据传递方向 | 作用
 | ---- | ---- | ----
 | attribute  | 从js脚本中传递到顶点着色器 | 只能定义在顶点着色器中，接收 JavaScript 程序传递过来的与顶点有关的数据，如顶点颜色、法线、坐标等顶点的属性
 | uniform  | 从js脚本中传递到顶点、片元着色器 | 在一个帧渲染过程中保持不变的变量，是所有顶点都共有的数据,在着色器中声明非顶点数据(如光源位置数据、方向数据、矩阵数据)。用来接收与顶点无关的数据。
-| varying  | 从顶点着色器传递到片元着色器 | 成对定义的，即在顶点着色器中定义，在片元着色器中使用。一般用来在顶点着色器和片元着色器之间传递数据，在顶点着色器中声明需要插值计算的顶点数据
+| constying  | 从顶点着色器传递到片元着色器 | 成对定义的，即在顶点着色器中定义，在片元着色器中使用。一般用来在顶点着色器和片元着色器之间传递数据，在顶点着色器中声明需要插值计算的顶点数据
 
-`varying`数据，需要同时在顶点着色器和片元着色器中声明。`varying` 类型变量主要是为了完成顶点着色器和片元着色器之间的数据传递和插值计算
+`constying`数据，需要同时在顶点着色器和片元着色器中声明。`constying` 类型变量主要是为了完成顶点着色器和片元着色器之间的数据传递和插值计算
 **在顶点着色器**
 ```js
 attribute vec4 a_color;// attribute声明顶点颜色变量
-varying vec4 v_color;//varying声明顶点颜色插值后变量
+constying vec4 v_color;//constying声明顶点颜色插值后变量
 void main() {
   //顶点颜色插值计算
   v_color = a_color;
@@ -367,7 +378,7 @@ void main() {
 **片元着色器**
 ```js
 // 接收顶点着色器中v_color数据
-varying vec4 v_color;
+constying vec4 v_color;
 void main() {
   // 插值后颜色数据赋值给对应的片元
   gl_FragColor = v_color;
@@ -379,9 +390,6 @@ void main() {
 + `gl.DEPTH_TEST`：启用深度测试。根据(坐标离相机的远近)自动隐藏被遮住的图形。按理说 Z 轴越小的越靠近视野，就会显示在前面。其实，在深度检测不开启的情况下，哪个顶点越靠后绘制，哪个顶点就绘制在前面，这时 Z 轴坐标不再决定顶点是否绘制在前面。
 + `gl.CULL_FACE`：启用隐藏图形材料的面
 + `gl.BLEND`：α融合,激活片元的颜色融合计算
-```
-
-
 #### 1、透明度融合
 比如源颜色像素值是 `(R1,G1,B1,A1)`,目标颜色像素值是 `(R2,G2,B2,A2)`，融合后的像素值计算方法如下：
 ```js
@@ -400,7 +408,7 @@ gl.enable(gl.BLEND); //gl.BLEND表示α融合，实现颜色融合叠加
 gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
 ```
 ## 5、WebGL坐标系
-`WebGL`坐标系分为如下几类：
+#### 5.1`WebGL`坐标系的分类：
 模型坐标系——>世界坐标系——>观察坐标系(又称相机坐标系、视图坐标系)——>裁剪坐标系(`gl_Position`接收的值)——>NDC坐标系——>屏幕坐标系。
 > 裁剪坐标系之前的这几个坐标系，我们都可以使用 JavaScript 控制。从裁剪坐标系到 NDC 坐标系，这一个步骤是 顶点着色器的最后自动完成的，我们无法干预。
 
@@ -444,12 +452,189 @@ const x = canvas.clientWidth / 2 + tempV.x * canvas.clientWidth / 2; //
 const y = canvas.clientHeight / 2 - tempV.y * canvas.clientHeight / 2;
 ```
 
-#### 1 变换矩阵的推导
+#### 5.2 变换矩阵的推导
 **变换矩阵的求解思路**
+
++ 1.求出新坐标系原点在原坐标系中的位置。
++ 2.求出新坐标系基向量在原坐标系中的表示。
+
 对物体（顶点）做平移、旋转、缩放的变换操作相当于对原来的坐标系做平移、旋转、缩放变换，**得到一个新坐标系**。
++ 首先求出新坐标系的基向量 U 在原坐标系下的表示 U’，其中 `U = (Ux, Uy, Uz)， U' = (Ux', Uy', Uz')`。
+  + Ux：X轴基向量，由三个分量构成，Uxx, X轴分量; Uxy, Y轴分;。Uxz，Z轴分量。
+  + Uy：Y轴基向量，由三个坐标轴分量组成 `Uyx`：X轴分量。Uyy：Y轴分量。Uyz：Z轴分量。
+  + Uz：Z轴基向量，由三个坐标轴分量组成. Uzx：X轴分量。Uzy：Y轴分量。Uzz：Z轴分量。
+
++ 其次求出新坐标系的坐标原点`O(Ox, Oy, Oz)` 在原坐标系下的坐标 `O1（Ox1, Oy1, Oz1`。
+> **基向量**是指坐标系中各个坐标轴正方向的单位向量，假设 Ux 代表 X 轴的单位向量，那么 Ux = (1, 0, 0)，同理， Uy = (0, 1, 0)，Uz = (0, 0, 1)。
+求解坐标变换矩阵关键就是要找到原坐标系的基向量在新坐标系中的表示。
++ 将上面求出的各个值代入下面的矩阵框架。
+<img src='./images/矩阵变换.svg' />
+
+下面是一个坐标系变换的例子，坐标系 `oxyz` 绕 Z 轴旋转 β 角度后形成了新坐标系 `ox'y'z'`：
+<img src='./images/绕z轴旋转.awebp'>
+按照求解思路的第一步，新坐标系的基向量在原坐标系表示为：
+```ini
+U' =  (Ux', Uy', Uz')
+Ux' = (cos(β), sin(β), 0)
+Uy' = (-sin(β), cos(β), 0)
+Uz' = (0, 0, 1)
+```
+原坐标系的坐标原点和新坐标系重合。
+```ini
+O1 = (Ox1 ,Oy1, Oz1) = (0, 0, 0)
+```
+代入通用矩阵框架后得出变换矩阵为：
+<img src='./images/绕z轴旋转的变换矩阵.svg'>;
+**平移变换的变换矩阵**
+<img src='./images/平移变换的变换矩阵.svg'>
+**缩放变换的变换矩阵**
+<img src='./images/缩放变换的变换矩阵.png'>
+**绕任意轴旋转**
+待续....
+
+#### 5.3 坐标系变换的分类
+可控制的坐标系变换分为3类，分别是：
++ 模型变换
+模型变换负责将模型坐标转换成世界坐标。
++ 视图变换
+视图变换负责将世界坐标转换成相机坐标。
++ 投影变换
+投影变换负责将相机坐标转换成裁剪坐标，也就是将 3D 坐标投影到 2D 平面上。
+变换矩阵相乘的顺序为：
+```ini
+F = P ✖️ V ✖️ M
+```
+
+变换矩阵为 F，模型矩阵为 M， 视图矩阵为 V，投影矩阵为 P。
+
+模型变换是由多个基本变换组合而成，那么对矩阵而言，就是由多个基本变换矩阵相乘而得到，既然提到相乘，那么相乘的顺序就至关重要。
+
+**5.3.1 模型变换**
+先缩放，再旋转，最后再平移。
+模型变换公式如下所示：
+```ini
+M = T(平移矩阵) ✖️ R(旋转矩阵) ✖️ S(缩放矩阵)
+```
+**5.3.2 视图变换**
+
+世界空间转变到观察空间这个过程通常称为视图变换，变换矩阵称为视图矩阵。在做视图变换之前，我们会在世界坐标系里指定摄像机或者人眼的位置`eyePosition`，以及摄像机头顶方向向量 `upDirection`，然后我们要根据这两个条件计算出视图变换矩阵。
+
+新坐标系是观察坐标系，原坐标系是世界坐标系，我们已经知道的是世界坐标系下的顶点位置 P0，需要求出顶点在观察坐标系中的位置 P1。
+```ini
+P1 = M ✖️ P0
+```
+`M` 是世界坐标系变换到观察坐标系的观察矩阵。为了求出 `M`，需要知道 世界坐标系的原点在观察坐标系中的位置，还需要知道世界坐标系基向量在观察坐标系中的表示。
+
+定义观察坐标系变换到世界坐标系的矩阵为**相机矩阵 `E`**，世界坐标系变换到观察坐标系的矩阵为**视图矩阵 `V`**，其中 `E` 和 `V` 互逆。 `E ✖️ V = I`,`I`为单位矩阵。
+
+**求解相机矩阵**
+已知：
++ 1.假设相机在世界坐标系中的位置 `Pe (ex, ey, ez)`。
++ 2.看向目标位置为`T (tx,ty,tz)`。
++ 3.摄像机上方方向向量 `upDirection` 为 `(ux, uy, uz)`。
+
+**1.求解相机坐标系的基向量在世界坐标系中的表示**
++ 从相机位置看像目标位置的方向称为观察方向，观察方向可以看做相机坐标系的 Z 轴方向，那么世界坐标系的 Z 轴基向量方向可以这样求出：
+  ```js
+  zAxis = Pe - T = (ex - tx, ey - ty, ez - tz);
+  ...
+  function lookAt(cameraPosition, target, upDirection){
+    const zAxis  = (Vector3.subtractVectors(cameraPosition, target)).normalize();
+  }
+  ```
++ 有了 Z 轴方向向量 `zAxis` 和临时 Y 轴 方向 `upDirection`，我们就可以利用向量叉乘来计算 X 轴方向。
+  ```js
+  xAxis = zAxis ✖️ upDirection;
+  ...
+  const xAxis = (Vector3.cross(upDirection, zAxis)).normalize();
+  // 处理 zAxis 和 upDirection 平行的情况：
+  if(xAxis.length() == 0){
+    if (Math.abs(upDirection.z == 1)) {
+      zAxis.x += 0.0001;
+    } else {
+      zAxis.z += 0.0001;
+    }
+    zAxis.normalize();
+    xAxis = Vector3.cross(upDirection, zAxis).normalize();
+  }
+  ```
++ 这时还需要求一遍 Y 轴的方向向量，因为 `upDirection` 是我们一开始假想的，只是为了求解 X 轴方向，**`upDirection` 和 `zAxis` 不一定是垂直关系。**
+
+  ```js
+  yAxis = zAxis ✖️ xAxis;
+  ...
+  const yAxis = (Vector3.cross(zAxis, xAxis)).normalize();
+  ```
++ 将 `xAxis(xx, xy, xz)、yAxis(yx, yy, yz)、zAxis(zx, zy, zz)` 以及相机位置 `Pe(ex, ey, ez)` 代入矩阵变换框架，可以求得相机坐标系变换到世界坐标系的相机矩阵 `E`。
+相机矩阵如下所示：
+<img src='./images/相机矩阵.svg' />
+利用逆矩阵的算法求出 E 的逆矩阵 `E^-1`，即视图矩阵。
+利用视图矩阵左乘顶点在世界坐标系的坐标，计算出顶点在观察坐标系中的坐标，也就完成了世界坐标系到观察坐标系的变换。
+
+**2.相机矩阵的使用**
++ 首先定义摄像机的位置：
+```ini
+const cameraPosition = new Vector3(0, 0, 10);
+```
++ 接着指定视线看向的点：
+```ini
+const target = new Vector3(0, 0, 0);
+```
++ 假定一个方向向量代表摄像机上方：
+```ini
+const upDirection = new Vector3(0, 1, 0);
+```
++ 参数代入 lookAt 方法，求出相机矩阵：
+```ini
+const cameraMatrix = matrix.lookAt(cameraPosition, target, upDirection);
+```
++ 最后一步，求相机矩阵的逆矩阵，即观察矩阵。
+```ini
+const viewMatrix = matrix.inverse(cameraMatrix);
+```
+
+**5.3.3投影变换**
+观察空间也沿用了右手坐标系，即 Z轴正向朝向屏幕外侧，但是裁剪坐标系是左手坐标系，即 Z 轴正向朝向屏幕内侧，那么在投影变换阶段，我们除了要将 3D 坐标投影到 2D 平面，还要将右手坐标系变换成左手坐标系。分为正交投影、透视投影。
++ 正交投影，可视范围是一个立方体盒子。
+<img src='./images/正交投影.awebp'>
++ 透视投影，可视范围是一个棱锥体盒子
+<img src='./images/透视投影.awebp'>
+
+**正交投影矩阵推导过程如下：**
+
+正交投影盒中的一点 `P(x, y, z)` ，投影后的点 `P'（x',y',z'）`, `x',y',z'` 的值都在 `[-1,1]` 之间。`(left,right,top,bottom,zNear,zFar)`,遵循的是右手坐标系。z轴正向只想屏幕外。相所以 `zNear` 是大于 `zFar`。
+> x' 和 x 的关系
+```js
+// (left+right)/2 为 x轴的原点
+// (right-left)/2 为 x的正向最大值
+x' = (x- (left+right)/2)/(right-left)/2;
+```
+> y' 和 y 的关系
+```js
+y' = (y- (top+bottom)/2)/(top-bottom)/2;
+```
+> y' 和 y 的关系
+```js
+z' = (z- (zFar+zNear)/2)/(zNear-zFar)/2;
+```
+将上面的 x'、y'、z'代入上式，即可求出正交投影矩阵：
+<img src='./images/正交投影.svg' >
+
+**透视投影矩阵推导过程如下：**
+将可视范围内的所有物体坐标投影到近平面上，投影后的坐标根据相似三角形原理求得，比较简单。
+通过上面透视投影示例图，根据相似三角形原理，我们可以知道如下关系：
+```js
+zNear/z = y1/y = x1/x;
+x1 = zNear*x/z;
+y1 = zNear*y/z;
+```
+其中 `x1` 和 `y1` 是相机坐标系坐标经过视线看向物体后在近平面上的交点坐标。此时 `x1` 和 `y1` 还是相机坐标系下坐标，并没有变换到裁剪坐标系，还要将 `x1` 和 `y1` 变换到`[-1，1]`之间。
 
 
-## 5、纹理贴图
+
+
+
+## 6、纹理贴图
 简单的所就是将 `png、jpg` 等格式图片显示在 `WebGL` 三维场景中。例如往三维模型上贴商标。
 
 在着色器中图片的坐标称为**纹理坐标**，图片称为**纹理图像**，图片上的一个像素称为**纹素**，一个纹素就是一个 `RGB` 或者`RGBA`值。把整个图片看成一个平面区域，用一个二维`UV`坐标可以描述每一个纹素的位置。下图来源于网络。
@@ -464,7 +649,7 @@ const y = canvas.clientHeight / 2 - tempV.y * canvas.clientHeight / 2;
 ```js
 attribute vec4 a_Position;//顶点位置坐标
 attribute vec2 a_TexCoord;//纹理坐标
-varying vec2 v_TexCoord;//插值后纹理坐标
+constying vec2 v_TexCoord;//插值后纹理坐标
 void main() {
   //顶点坐标apos赋值给内置变量gl_Position
   gl_Position = a_Position;
@@ -477,7 +662,7 @@ void main() {
 /所有float类型数据的精度是highp
 precision highp float;
 // 接收插值后的纹理坐标
-varying vec2 v_TexCoord;
+constying vec2 v_TexCoord;
 // 纹理图片像素数据
 uniform sampler2D u_Sampler;
 void main() {
@@ -486,7 +671,7 @@ void main() {
 }
 ```
 
-## 6、彩色图转灰度图
+## 7、彩色图转灰度图
 
 #### 1、亮度
 
@@ -499,7 +684,7 @@ void main() {
  //浮点数设置为中等精度
 precision mediump float;
 uniform sampler2D u_Texture;
-varying vec2 v_Uv;
+constying vec2 v_Uv;
 void main() {
   //采集纹素
   vec4 texture = texture2D(u_Sampler,v_Uv);
@@ -511,7 +696,7 @@ void main() {
 ```
 
 
-## 7、平行光漫反射简单数学模型
+## 8、平行光漫反射简单数学模型
 因为表面是无规则随机分布凹凸不同的反射面，光线的反射是不定向的，任何角度的反射光都是一样的，物体反射到眼睛中的光与人的观察位置无关。
 ```js
 漫反射光的颜色 = 几何体表面基色 * 光线颜色 * 光线入射角余弦值
@@ -596,7 +781,7 @@ vec4 lightColor = vec4(light_Color * diffuseFactor, 1);
 
 **2、点光源的漫反射**
 
-## 8.摄像机
+## 9.摄像机
 
 #### 1.透视摄像机
 + fov 是视野范围(field of view)的缩写。注意three.js中大多数的角用弧度表示，但是因为某些原因透视摄像机使用角度表示。
