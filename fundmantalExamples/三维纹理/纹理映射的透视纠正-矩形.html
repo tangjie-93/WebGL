@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        @import url("https://webglfundamentals.org/webgl/resources/webgl-tutorials.css");
+
+        body {
+            margin: 0;
+        }
+
+        canvas {
+            width: 100vw;
+            height: 100vh;
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="c"></canvas>
+    <script id="vertex-shader-2d" type="notjs">
+
+  attribute vec4 a_position;
+  attribute float a_brightness;
+
+  varying float v_brightness;
+
+  void main() {
+    gl_Position = a_position;
+
+    // just pass the brightness on to the fragment shader
+    // 进行插值处理 线性插值 
+    v_brightness = a_brightness;
+  }
+
+</script>
+    <script id="fragment-shader-2d" type="notjs">
+ precision mediump float;
+
+ varying float v_brightness;  
+
+ void main() {
+    gl_FragColor = vec4(fract(v_brightness * 10.), 0, 0, 1);  // reds
+ }
+
+</script><!--
+for most samples webgl-utils only provides shader compiling/linking and
+canvas resizing because why clutter the examples with code that's the same in every sample.
+See https://webglfundamentals.org/webgl/lessons/webgl-boilerplate.html
+and https://webglfundamentals.org/webgl/lessons/webgl-resizing-the-canvas.html
+for webgl-utils, m3, m4, and webgl-lessons-ui.
+-->
+    <script src="https://webglfundamentals.org/webgl/resources/webgl-utils.js"></script>
+</body>
+
+</html>
+<script>
+    "use strict";
+    /**
+     * WebGL使用 W 实现纹理映射或者可变量插值的透视投影。
+     * 线性插值应该是这样的公式
+        result = (1 - t) * a + t * b  //t 的范围是 0 到 1，表示 a 到 b 之间的位置，0 表示在 a 点，1 表示在 b 点。
+
+        可变量经过 WebGL 的插值时使用这个公式
+        result = (1 - t) * a / aW + t * b / bW
+          -----------------------------
+             (1 - t) / aW + t / bW
+        aW 表示 a 点的 W 值，也就是 gl_Position.w 的值，而不一定等于缓冲中的值， 同理 bW 是设置在 b 点的 gl_Position.w。
+
+     * 
+     */ 
+
+    function main() {
+        // Get A WebGL context
+        var canvas = document.querySelector("#c");
+        var gl = canvas.getContext("webgl");
+        if (!gl) {
+            return;
+        }
+
+        // setup GLSL program
+        var program = webglUtils.createProgramFromScripts(gl, ["vertex-shader-2d", "fragment-shader-2d"]);
+
+        // look up where the vertex data needs to go.
+        var positionAttributeLocation = gl.getAttribLocation(program, "a_position");
+        var brightnessAttributeLocation = gl.getAttribLocation(program, "a_brightness");
+
+        // Create a buffer and put 12 clip space points in it.
+        // 4 rectangles, 2 triangles each, 3 vertices per triangle
+        var positionBuffer = gl.createBuffer();
+
+        // Bind it to ARRAY_BUFFER (think of it as ARRAY_BUFFER = positionBuffer)
+        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+
+        var mult = 20;
+        var positions = [
+            -.8, .8, 0, 1,  // 1st rect 1st triangle
+            .8, .8, 0, 1,
+            -.8, .2, 0, 1,
+            -.8, .2, 0, 1,  // 1st rect 2nd triangle
+            .8, .8, 0, 1,
+            .8, .2, 0, 1,
+
+            -.8, -.2, 0, 1,  // 2nd rect 1st triangle
+            .8 * mult, -.2 * mult, 0, mult,
+            -.8, -.8, 0, 1,
+            -.8, -.8, 0, 1,  // 2nd rect 2nd triangle
+            .8 * mult, -.2 * mult, 0, mult,
+            .8 * mult, -.8 * mult, 0, mult,
+        ];
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+
+        // Create a buffer and put 12 brightness values in it
+        var brightnessBuffer = gl.createBuffer();
+
+        // Bind it to ARRAY_BUFFER (think of it as ARRAY_BUFFER = brightnessBuffer)
+        gl.bindBuffer(gl.ARRAY_BUFFER, brightnessBuffer);
+
+        var brightness = [
+            0,  // 1st rect 1st triangle
+            1,
+            0,
+            0,  // 1st rect 2nd triangle
+            1,
+            1,
+
+            0,  // 2nd rect 1st triangle
+            1,
+            0,
+            0,  // 2nd rect 2nd triangle
+            1,
+            1,
+        ];
+
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(brightness), gl.STATIC_DRAW);
+
+        // code above this line is initialization code.
+        // code below this line is rendering code.
+
+        webglUtils.resizeCanvasToDisplaySize(gl.canvas);
+
+        // Tell WebGL how to convert from clip space to pixels
+        gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+
+        // Clear the canvas
+        gl.clearColor(0, 0, 0, 0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+
+        // Tell it to use our program (pair of shaders)
+        gl.useProgram(program);
+
+        // Turn on the attribute
+        gl.enableVertexAttribArray(positionAttributeLocation);
+
+        // Bind the position buffer.
+        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+
+        // Tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
+        var size = 4;          // 4 components per iteration
+        var type = gl.FLOAT;   // the data is 32bit floats
+        var normalize = false; // don't normalize the data
+        var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
+        var offset = 0;        // start at the beginning of the buffer
+        gl.vertexAttribPointer(
+            positionAttributeLocation, size, type, normalize, stride, offset);
+
+        // Turn on the attribute
+        gl.enableVertexAttribArray(brightnessAttributeLocation);
+
+        // Bind the position buffer.
+        gl.bindBuffer(gl.ARRAY_BUFFER, brightnessBuffer);
+
+        // Tell the attribute how to get data out of brightnessBuffer (ARRAY_BUFFER)
+        var size = 1;          // 1 component per iteration
+        var type = gl.FLOAT;   // the data is 32bit floats
+        var normalize = false; // don't normalize the data
+        var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
+        var offset = 0;        // start at the beginning of the buffer
+        gl.vertexAttribPointer(
+            brightnessAttributeLocation, size, type, normalize, stride, offset);
+
+        // draw
+        var primitiveType = gl.TRIANGLES;
+        var offset = 0;
+        var count = 4 * 3;   // 4 triangles, 3 vertices each
+        gl.drawArrays(primitiveType, offset, count);
+    }
+
+    main();
+
+</script>

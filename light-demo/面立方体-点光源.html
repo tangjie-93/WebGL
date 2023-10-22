@@ -111,12 +111,12 @@
             ])
             vertexBuffer(gl,data,aposLocation,3,4*10,0);
             indexbuffer(gl,indexdata);
-            // vertexBuffer(gl,indexdata,acolor,4,'index',4*10,12);
+            // vertexBuffer(gl,indexdata,acolor,4,'index',4*10,12); 12 = 4*3
             gl.vertexAttribPointer(acolor, 4, gl.FLOAT, false, 4*10, 12);
              //允许数据传递
             gl.enableVertexAttribArray(acolor);
 
-            ///缓冲区中的数据按照一定的规律传递给位置变量apos
+            ///缓冲区中的数据按照一定的规律传递给位置变量apos 28 = 4*7
             gl.vertexAttribPointer(a_normal, 3, gl.FLOAT, false, 4*10, 28);
              //允许数据传递
             gl.enableVertexAttribArray(a_normal);

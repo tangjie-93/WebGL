@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        @import url("https://webglfundamentals.org/webgl/resources/webgl-tutorials.css");
+
+        body {
+            margin: 0;
+        }
+
+        canvas {
+            width: 100vw;
+            height: 100vh;
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="canvas"></canvas>
+    <!--
+for most samples webgl-utils only provides shader compiling/linking and
+canvas resizing because why clutter the examples with code that's the same in every sample.
+See https://webglfundamentals.org/webgl/lessons/webgl-boilerplate.html
+and https://webglfundamentals.org/webgl/lessons/webgl-resizing-the-canvas.html
+for webgl-utils, m3, m4, and webgl-lessons-ui.
+-->
+    <script src="https://webglfundamentals.org/webgl/resources/webgl-utils.js"></script>
+</body>
+
+</html>
+<script>
+    "use strict";
+    /**
+     * 最终的呈现效果解释：
+     * 左上角：x轴的的裁剪坐标接近1，所以显示为红的为主；
+     * 左下角：x,y轴的裁剪坐标都接近1，所以显示为黄色；
+     * 右下角：y轴的裁剪坐标接近1，所以显示为绿色
+     * 
+     * 
+     * /
+
+    function main() {
+        // Get A WebGL context
+        /** @type {HTMLCanvasElement} */
+        const canvas = document.querySelector("#canvas");
+        const gl = canvas.getContext("webgl");
+        if (!gl) {
+            return;
+        }
+
+        const vs = `
+    // an attribute will receive data from a buffer
+    attribute vec4 a_position;
+
+    // all shaders have a main function
+    void main() {
+
+      // gl_Position is a special variable a vertex shader
+      // is responsible for setting
+      gl_Position = a_position;
+    }
+  `;
+
+        const fs = `
+    precision highp float;
+
+    uniform vec2 u_resolution;
+    uniform vec2 u_mouse;
+
+    void main() {
+      // gl_FragColor is a special variable a fragment shader
+      // is responsible for setting
+      //  gl_FragCoord 的坐标系是以屏幕的左下角为原点，向右为 x 轴正方向，
+      // 向上为 y 轴正方向。它的值通常用于访问纹理、计算光照、执行屏幕后期处理等任务。
+      gl_FragColor = vec4(fract((gl_FragCoord.xy - u_mouse) / u_resolution), 0, 1);
+    }
+  `;
+
+        // setup GLSL program
+        const program = webglUtils.createProgramFromSources(gl, [vs, fs]);
+
+        // look up where the vertex data needs to go.
+        const positionAttributeLocation = gl.getAttribLocation(program, "a_position");
+
+        // look up uniform locations
+        const resolutionLocation = gl.getUniformLocation(program, "u_resolution");
+        const mouseLocation = gl.getUniformLocation(program, "u_mouse");
+
+        // Create a buffer to put three 2d clip space points in
+        const positionBuffer = gl.createBuffer();
+
+        // Bind it to ARRAY_BUFFER (think of it as ARRAY_BUFFER = positionBuffer)
+        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+
+        // fill it with a 2 triangles that cover clipspace
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+            -1, -1,  // first triangle
+            1, -1,
+            -1, 1,
+            -1, 1,  // second triangle
+            1, -1,
+            1, 1,
+        ]), gl.STATIC_DRAW);
+
+        let mouseX = 0;
+        let mouseY = 0;
+
+        function setMousePosition(e) {
+            const rect = canvas.getBoundingClientRect();
+            mouseX = e.clientX - rect.left;
+            mouseY = rect.height - (e.clientY - rect.top);  // bottom is 0 in WebGL
+            render();
+        }
+
+        canvas.addEventListener('mousemove', setMousePosition);
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+        }, { passive: false });
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            setMousePosition(e.touches[0]);
+        }, { passive: false });
+
+        function render() {
+            webglUtils.resizeCanvasToDisplaySize(gl.canvas);
+
+            // Tell WebGL how to convert from clip space to pixels
+            gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+
+            // Tell it to use our program (pair of shaders)
+            gl.useProgram(program);
+
+            // Turn on the attribute
+            gl.enableVertexAttribArray(positionAttributeLocation);
+
+            // Bind the position buffer.
+            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+
+            // Tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
+            gl.vertexAttribPointer(
+                positionAttributeLocation,
+                2,          // 2 components per iteration
+                gl.FLOAT,   // the data is 32bit floats
+                false,      // don't normalize the data
+                0,          // 0 = move forward size * sizeof(type) each iteration to get the next position
+                0,          // start at the beginning of the buffer
+            );
+
+            gl.uniform2f(resolutionLocation, gl.canvas.width, gl.canvas.height);
+            gl.uniform2f(mouseLocation, mouseX, mouseY);
+
+            gl.drawArrays(
+                gl.TRIANGLES,
+                0,     // offset
+                6,     // num vertices to process
+            );
+        }
+        render();
+    }
+
+    main();
+
+</script>

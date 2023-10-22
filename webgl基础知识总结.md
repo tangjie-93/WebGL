@@ -333,7 +333,7 @@ gl.enableVertexAttribArray(aposLocation);
 **纹理采样**
 ```js
 // 接收插值后的纹理坐标
-constying vec2 v_TexCoord;
+varying vec2 v_TexCoord;
 // 纹理图片像素数据
 uniform sampler2D u_Sampler;
 void main() {
@@ -393,18 +393,18 @@ void main(){
 <img src="./images/gl_FragCoord.png" width='400' />
 
 ## 3、限定符之attribute和uniform以及constying的区别
-`attribute` 和 `uniform` 关键字的目的主要是为了 `javascript` 语言可以通过相关的WebGL API把一些数据传递给着色器。而`constying` 主要是将顶点着色器中的数据传递给片元着色器。
+`attribute` 和 `uniform` 关键字的目的主要是为了 `javascript` 语言可以通过相关的WebGL API把一些数据传递给着色器。而`varing` 主要是将顶点着色器中的数据传递给片元着色器。
 | 变量类型 | 数据传递方向 | 作用
 | ---- | ---- | ----
 | attribute  | 从js脚本中传递到顶点着色器 | 只能定义在顶点着色器中，接收 JavaScript 程序传递过来的与顶点有关的数据，如顶点颜色、法线、坐标等顶点的属性
 | uniform  | 从js脚本中传递到顶点、片元着色器 | 在一个帧渲染过程中保持不变的变量，是所有顶点都共有的数据,在着色器中声明非顶点数据(如光源位置数据、方向数据、矩阵数据)。用来接收与顶点无关的数据。
-| constying  | 从顶点着色器传递到片元着色器 | 成对定义的，即在顶点着色器中定义，在片元着色器中使用。一般用来在顶点着色器和片元着色器之间传递数据，在顶点着色器中声明需要插值计算的顶点数据
+| varying  | 从顶点着色器传递到片元着色器 | 成对定义的，即在顶点着色器中定义，在片元着色器中使用。一般用来在顶点着色器和片元着色器之间传递数据，在顶点着色器中声明需要插值计算的顶点数据
 
-`constying`数据，需要同时在顶点着色器和片元着色器中声明。`constying` 类型变量主要是为了完成顶点着色器和片元着色器之间的数据传递和插值计算
+`varying`数据，需要同时在顶点着色器和片元着色器中声明。`varying` 类型变量主要是为了完成顶点着色器和片元着色器之间的数据传递和插值计算
 **在顶点着色器**
 ```js
 attribute vec4 a_color;// attribute声明顶点颜色变量
-constying vec4 v_color;//constying声明顶点颜色插值后变量
+varying vec4 v_color;//constying声明顶点颜色插值后变量
 void main() {
   //顶点颜色插值计算
   v_color = a_color;
@@ -413,7 +413,7 @@ void main() {
 **片元着色器**
 ```js
 // 接收顶点着色器中v_color数据
-constying vec4 v_color;
+varying vec4 v_color;
 void main() {
   // 插值后颜色数据赋值给对应的片元
   gl_FragColor = v_color;
@@ -688,7 +688,7 @@ y' = y1/(height/2) = zNear*x/(z*(height/2));
 ```js
 attribute vec4 a_Position;//顶点位置坐标
 attribute vec2 a_TexCoord;//纹理坐标
-constying vec2 v_TexCoord;//插值后纹理坐标
+varying vec2 v_TexCoord;//插值后纹理坐标
 void main() {
   //顶点坐标apos赋值给内置变量gl_Position
   gl_Position = a_Position;
@@ -701,7 +701,7 @@ void main() {
 /所有float类型数据的精度是highp
 precision highp float;
 // 接收插值后的纹理坐标
-constying vec2 v_TexCoord;
+varying vec2 v_TexCoord;
 // 纹理图片像素数据
 uniform sampler2D u_Sampler;
 void main() {
@@ -723,7 +723,7 @@ void main() {
  //浮点数设置为中等精度
 precision mediump float;
 uniform sampler2D u_Texture;
-constying vec2 v_Uv;
+varying vec2 v_Uv;
 void main() {
   //采集纹素
   vec4 texture = texture2D(u_Sampler,v_Uv);
@@ -932,3 +932,87 @@ q = (w,u)
 
 
 
+
+
+## 11.webgl怎么处理传递进去的数据的
++ 构建图形的数据
+数据一般是按三角形去绘制，按照顺时针的顺序去绘制的，并且第二个三角形的第一个点是前面一个三角形的最后一个点，并最终绘制成图形的。
+```js
+// 构建图形的数据 
+function setGeometry(gl) {
+  gl.bufferData(
+      gl.ARRAY_BUFFER,
+      new Float32Array([
+          // left column
+          0, 0,
+          30, 0,
+          0, 150,
+          0, 150,
+          30, 0,
+          30, 150,
+
+          // top rung
+          30, 0,
+          100, 0,
+          30, 30,
+          30, 30,
+          100, 0,
+          100, 30,
+
+          // middle rung
+          30, 60,
+          67, 60,
+          30, 90,
+          30, 90,
+          67, 60,
+          67, 90,
+      ]),
+      gl.STATIC_DRAW);
+}
+```
++ 绘制图形
+```js
+// look up where the vertex data needs to go.
+  var positionLocation = gl.getAttribLocation(program, "a_position");
+
+  // Create a buffer to put positions in
+  var positionBuffer = gl.createBuffer();
+  // Bind it to ARRAY_BUFFER (think of it as ARRAY_BUFFER = positionBuffer)
+  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+ // Draw the scene.
+  function drawScene() {
+    webglUtils.resizeCanvasToDisplaySize(gl.canvas);
+
+    // Tell WebGL how to convert from clip space to pixels
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+
+    // Clear the canvas.
+    gl.clear(gl.COLOR_BUFFER_BIT);
+
+    // Tell it to use our program (pair of shaders)
+    gl.useProgram(program);
+
+    // Turn on the attribute
+    gl.enableVertexAttribArray(positionLocation);
+
+    // Bind the position buffer.
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+
+    // Tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
+    var size = 2;          // 2 components per iteration
+    var type = gl.FLOAT;   // the data is 32bit floats
+    var normalize = false; // don't normalize the data
+    var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
+    var offset = 0;        // start at the beginning of the buffer
+    gl.vertexAttribPointer(
+        positionLocation, size, type, normalize, stride, offset);
+    // Draw the geometry.
+    var primitiveType = gl.TRIANGLES;
+    var offset = 0;
+    var count = 18;  // 6 triangles in the 'F', 3 points per triangle
+    gl.drawArrays(primitiveType, offset, count);
+  }
+```
++ 最终呈现的结果
+
+<img src='./images/F.png'>

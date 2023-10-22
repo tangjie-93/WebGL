@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>平移</title>
+    <script src="../../lib/webgl-utils.js"></script>
+    <script src="../../lib/webgl-debug.js"></script>
+    <script src="../../lib/cuon-utils.js"></script>
+
+</head>
+    <body onload="main()">
+        <canvas id="webgl" width="400" height="400">
+        Please use a browser that supports "canvas"
+        </canvas>
+      </body>
+</html>
+<script>// TranslatedTriangle.js (c) 2012 matsuda
+    // Vertex shader program
+    var VSHADER_SOURCE =
+      'attribute vec4 a_Position;\n' +
+      'uniform float u_Sx,u_Sy,u_Sz;\n' +
+      'void main() {\n' +
+      '  gl_Position.x = a_Position.x * u_Sx;\n' +
+      '  gl_Position.y = a_Position.y * u_Sy;\n' +
+      '  gl_Position.z = a_Position.z * u_Sz;\n' +
+      '  gl_Position.w = 1.0;\n' +
+      '}\n';
+    
+    // Fragment shader program
+    var FSHADER_SOURCE =
+      'void main() {\n' +
+      '  gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);\n' +
+      '}\n';
+    
+    // The translation distance for x, y, and z direction
+    var Sx = 1.0, Sy = 1.5, Sz = 1.0;
+    
+    function main() {
+      // Retrieve <canvas> element
+      var canvas = document.getElementById('webgl');
+    
+      // Get the rendering context for WebGL
+      var gl = getWebGLContext(canvas);
+      if (!gl) {
+        console.log('Failed to get the rendering context for WebGL');
+        return;
+      }
+    
+      // Initialize shaders
+      if (!initShaders(gl, VSHADER_SOURCE, FSHADER_SOURCE)) {
+        console.log('Failed to intialize shaders.');
+        return;
+      }
+    
+      // Write the positions of vertices to a vertex shader
+      var n = initVertexBuffers(gl);
+      if (n < 0) {
+        console.log('Failed to set the positions of the vertices');
+        return;
+      }
+     
+    
+      // Pass the translation distance to the vertex shader
+      var u_Sx = gl.getUniformLocation(gl.program, 'u_Sx');
+      var u_Sy = gl.getUniformLocation(gl.program, 'u_Sy');
+      var u_Sz = gl.getUniformLocation(gl.program, 'u_Sz');
+      if (!u_Sx||!u_Sy||!u_Sz) {
+        console.log('Failed to get the storage location of u_Sx||u_Sy||u_Sz');
+        return;
+      }
+      gl.uniform1f(u_Sx, Sx);
+      gl.uniform1f(u_Sy, Sy);
+      gl.uniform1f(u_Sz, Sz);
+    
+      // Specify the color for clearing <canvas>
+      gl.clearColor(0, 0, 0, 1);
+    
+      // Clear <canvas>
+      gl.clear(gl.COLOR_BUFFER_BIT);
+    
+      // Draw the rectangle
+      gl.drawArrays(gl.TRIANGLES, 0, n);
+    }
+    
+    function initVertexBuffers(gl) {
+      var vertices = new Float32Array([
+        0, 0.5,   -0.5, -0.5,   0.5, -0.5
+      ]);
+      var n = 3; // The number of vertices
+    
+      // Create a buffer object
+      var vertexBuffer = gl.createBuffer();
+      if (!vertexBuffer) {
+        console.log('Failed to create the buffer object');
+        return -1;
+      }
+    
+      // Bind the buffer object to target
+      gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+      // Write date into the buffer object
+      gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+    
+      // Assign the buffer object to the attribute variable
+      var a_Position = gl.getAttribLocation(gl.program, 'a_Position');
+      if (a_Position < 0) {
+        console.log('Failed to get the storage location of a_Position');
+        return -1;
+      }
+      gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, 0, 0);
+    
+      // Enable the assignment to a_Position variable
+      gl.enableVertexAttribArray(a_Position);
+    
+      return n;
+    }
+    
+
+</script>

@@ -67,6 +67,7 @@
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexesBuffer);
             //索引数组indexes数据传入缓冲区
             gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indexes, gl.STATIC_DRAW);
+            
             let a_Position = gl.getAttribLocation(program, 'a_Position');
             let a_Color = gl.getAttribLocation(program, 'a_Color');
             gl.enableVertexAttribArray(a_Position);

@@ -522,7 +522,7 @@ function setElementsCountPerAttribute(object) {
   let key = Object.keys(object)[0];
   let array = object[key];
   if (array && array.buffer instanceof ArrayBuffer) {
-    return array.elementsCount;
+    return array.elementsCount;x
   } else {
     return array.length / array.numsPerElement;
   }

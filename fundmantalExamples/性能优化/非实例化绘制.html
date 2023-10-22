@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>非实例化绘制</title>
+    <style>
+        @import url("https://webglfundamentals.org/webgl/resources/webgl-tutorials.css");
+
+        body {
+            margin: 0;
+        }
+
+        canvas {
+            width: 100vw;
+            height: 100vh;
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="canvas"></canvas>
+    <!-- vertex shader -->
+    <script id="vertex-shader-3d" type="x-shader/x-vertex">
+attribute vec4 a_position;
+uniform mat4 matrix;
+
+void main() {
+  // Multiply the position by the matrix.
+  gl_Position = matrix * a_position;
+}
+</script>
+    <!-- fragment shader -->
+    <script id="fragment-shader-3d" type="x-shader/x-fragment">
+precision mediump float;
+
+uniform vec4 color;
+
+void main() {
+  gl_FragColor = color;
+}
+</script><!--
+for most samples webgl-utils only provides shader compiling/linking and
+canvas resizing because why clutter the examples with code that's the same in every sample.
+See https://webglfundamentals.org/webgl/lessons/webgl-boilerplate.html
+and https://webglfundamentals.org/webgl/lessons/webgl-resizing-the-canvas.html
+for webgl-utils, m3, m4, and webgl-lessons-ui.
+-->
+    <script src="https://webglfundamentals.org/webgl/resources/webgl-utils.js"></script>
+    <script src="https://webglfundamentals.org/webgl/resources/m4.js"></script>
+</body>
+
+</html>
+<script>
+    'use strict';
+
+    function main() {
+        // Get A WebGL context
+        /** @type {HTMLCanvasElement} */
+        const canvas = document.querySelector('#canvas');
+        const gl = canvas.getContext('webgl');
+        if (!gl) {
+            return;
+        }
+
+        // setup GLSL programs
+        // compiles shaders, links program
+        const program = webglUtils.createProgramFromScripts(
+            gl, ['vertex-shader-3d', 'fragment-shader-3d']);
+
+        const positionLoc = gl.getAttribLocation(program, 'a_position');
+        const colorLoc = gl.getUniformLocation(program, 'color');
+        const matrixLoc = gl.getUniformLocation(program, 'matrix');
+
+        const positionBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+            -0.1, 0.4,
+            -0.1, -0.4,
+            0.1, -0.4,
+            0.1, -0.4,
+            -0.1, 0.4,
+            0.1, 0.4,
+            0.4, -0.1,
+            -0.4, -0.1,
+            -0.4, 0.1,
+            -0.4, 0.1,
+            0.4, -0.1,
+            0.4, 0.1,
+        ]), gl.STATIC_DRAW);
+        const numVertices = 12;
+
+        const numInstances = 5;
+        const matrices = [
+            m4.identity(),
+            m4.identity(),
+            m4.identity(),
+            m4.identity(),
+            m4.identity(),
+        ];
+
+        const colors = [
+            [1, 0, 0, 1,],  // red
+            [0, 1, 0, 1,],  // green
+            [0, 0, 1, 1,],  // blue
+            [1, 0, 1, 1,],  // magenta
+            [0, 1, 1, 1,],  // cyan
+        ];
+
+        function render(time) {
+            time *= 0.001; // seconds
+
+            webglUtils.resizeCanvasToDisplaySize(gl.canvas);
+
+            // Tell WebGL how to convert from clip space to pixels
+            gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+
+            gl.useProgram(program);
+
+            // setup the position attribute
+            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+            gl.enableVertexAttribArray(positionLoc);
+            gl.vertexAttribPointer(
+                positionLoc,  // location
+                2,            // size (num values to pull from buffer per iteration)
+                gl.FLOAT,     // type of data in buffer
+                false,        // normalize
+                0,            // stride (0 = compute from size and type above)
+                0,            // offset in buffer
+            );
+
+            matrices.forEach((mat, ndx) => {
+                m4.translation(-0.5 + ndx * 0.25, 0, 0, mat);
+                m4.zRotate(mat, time * (0.1 + 0.1 * ndx), mat);
+
+                const color = colors[ndx];
+
+                gl.uniform4fv(colorLoc, color);
+                gl.uniformMatrix4fv(matrixLoc, false, mat);
+
+                gl.drawArrays(
+                    gl.TRIANGLES,
+                    0,             // offset
+                    numVertices,   // num vertices per instance
+                );
+            });
+
+            requestAnimationFrame(render);
+        }
+        requestAnimationFrame(render);
+    }
+
+    main();
+
+</script>

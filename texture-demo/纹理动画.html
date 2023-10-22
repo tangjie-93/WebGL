@@ -98,6 +98,7 @@ width: 100%;">
       }
       for (let i = 2; i < positions.length; i += 4) {
         positions[i] += anim;
+        positions[i+1] += anim;
       }
       requestAnimationFrame(()=>{
         render(gl,positions);

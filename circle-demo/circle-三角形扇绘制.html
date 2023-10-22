@@ -97,13 +97,26 @@ init()
 			gl.shaderSource(vertexShader, vertexShaderSource);
 			gl.shaderSource(fragmentShader, fragmentShaderSource);
 			gl.compileShader(vertexShader);
+            const success = gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS);
+            if(!success){
+                console.log(gl.getShaderInfoLog(shader));
+                gl.deleteShader(shader);
+            }
 			gl.compileShader(fragmentShader);
 			const program = gl.createProgram();
 			gl.attachShader(program, vertexShader);
 			gl.attachShader(program, fragmentShader);
 			gl.linkProgram(program);
-			gl.useProgram(program);
+            const success3 = gl.getProgramParameter(program, gl.LINK_STATUS);
+			if(!success3){
+                console.log(gl.getProgramInfoLog(program));
+                gl.deleteProgram(program);
+            }
+            gl.useProgram(program);
+
 			return program;
+
+          
 		}
 
         function initBuffer(gl,program) {
@@ -114,7 +127,7 @@ init()
 
             let a_Position = gl.getAttribLocation(program, 'a_Position');
             let a_Color = gl.getAttribLocation(program, 'a_Color');
-
+            // 启用属性
             gl.enableVertexAttribArray(a_Position);
             gl.enableVertexAttribArray(a_Color);
             // 创建缓冲区
