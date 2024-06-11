@@ -10,17 +10,6 @@
 
 <img src="./images/webgl-渲染管线.png" alt="暂无数据" />
 
-+ `uniform`数据和顶点缓存区
-是`javascript`中传入的数据。
-+ 顶点着色器
-将接收到的顶点信息，绘制成对应的坐标。
-+ 图元装配阶段
-是将顶点数据装配成指定**图元类型**。如点、线、三角形。
-+ 光栅化阶段
-将图元内部区域用空像素填充。
-+ 片元着色器
-为图元内部的像素填充颜色信息。
-
 WebGL（Web Graphics Library）是一种用于在Web浏览器中进行3D图形渲染的技术，其渲染管线包括以下步骤：
 
 + 顶点数据输入
@@ -48,13 +37,6 @@ WebGL（Web Graphics Library）是一种用于在Web浏览器中进行3D图形�
 渲染管线完成后，WebGL会将帧缓冲中的渲染结果输出到屏幕上，从而在Web浏览器中显示渲染的3D图形。
 
 以上是WebGL渲染管线的主要步骤
-
-
-
-
-
-
-
 
 
 #### 3.GLSL中的数据类型
@@ -392,7 +374,7 @@ void main(){
 结果如下图所示：
 <img src="./images/gl_FragCoord.png" width='400' />
 
-## 3、限定符之attribute和uniform以及constying的区别
+## 3、限定符之attribute和uniform以及varying的区别
 `attribute` 和 `uniform` 关键字的目的主要是为了 `javascript` 语言可以通过相关的WebGL API把一些数据传递给着色器。而`varing` 主要是将顶点着色器中的数据传递给片元着色器。
 | 变量类型 | 数据传递方向 | 作用
 | ---- | ---- | ----

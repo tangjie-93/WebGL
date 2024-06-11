@@ -121,7 +121,7 @@ function checkFace(gl, n, x, y, currentAngle, u_PickedFace, viewProjMatrix, u_Mv
   draw(gl, n, currentAngle, viewProjMatrix, u_MvpMatrix);
   // Read the pixel value of the clicked position. pixels[3] is the surface number
   gl.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-
+debugger
   return pixels[3];
 }
 
