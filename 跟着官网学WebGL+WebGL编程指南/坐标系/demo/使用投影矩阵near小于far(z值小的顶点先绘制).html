@@ -86,7 +86,7 @@ function initVertexBuffers(gl) {
   gl.vertexAttribPointer(a_Position, numVertex, gl.FLOAT, false, FSIZE * STRIDE, 0);
   gl.enableVertexAttribArray(a_Position);
 
-  // 頂点の色を設定し、有効化する
+  // 获取顶点着色器中的颜色变量
   var a_Color = gl.getAttribLocation(gl.program, 'a_Color');
   gl.vertexAttribPointer(a_Color, numColor, gl.FLOAT, false, FSIZE * STRIDE, FSIZE * numVertex);
   gl.enableVertexAttribArray(a_Color);

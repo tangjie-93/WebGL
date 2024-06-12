@@ -80,7 +80,7 @@ var pc = new Float32Array([ // Vertex coordinates and color
 <img src='../../images/右手坐标系.png'><br>
 
 #### 5.2 使用投影矩阵
-但我们使用投影矩阵后，通过设置正射投影矩阵中的远、近平面的距离，我们看到的结果又会不i一样。下面是使用投影矩阵后的视觉效果。
+但我们使用投影矩阵后，通过设置正射投影矩阵中的远、近平面的距离，我们看到的结果又会不一样。下面是使用投影矩阵后的视觉效果。
 **注意：** 使用投影矩阵时，都会默认开启深度测试。
 ```js
 gl.enable(gl.DEPTH_TEST); 
@@ -122,6 +122,8 @@ gl.uniformMatrix4fv(u_MvpMatrix, false, mvpMatrix.elements);
 
 <img src='../../images/正交投影.svg' ><br>
 
+> `near>far` 的正交投影
+
 我们将 `left=-1,right=1,bottom=-1,top=1,near=1,far= -1` 代入上面的矩阵可以得到如下的单位矩阵。<br>
 
 <img src='../../images/单位矩阵.png'><br>
@@ -134,6 +136,8 @@ gl.uniformMatrix4fv(u_MvpMatrix, false, mvpMatrix.elements);
 <img src='../../images/NDC坐标系.png'>
 
 `demo`地址为 `./demo/使用投影矩阵near大于far.html`。
+
+> `near<far` 的正交投影
 
 但是如果我们将参数做以下调整。
 ```js
