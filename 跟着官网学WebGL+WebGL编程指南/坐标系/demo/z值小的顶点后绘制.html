@@ -43,7 +43,7 @@ function main() {
   var gl = getWebGLContext(canvas);              // Get the rendering context for WebGL
   initShaders(gl, VSHADER_SOURCE, FSHADER_SOURCE);   // Initialize shaders
   var n = initVertexBuffers(gl);      // Set vertex coordinates and colors
-
+  // gl.enable(gl.DEPTH_TEST); 
   gl.clearColor(0.0, 0.0, 0.0, 1.0);  // Specify the color for clearing <canvas>
   gl.clear(gl.COLOR_BUFFER_BIT);      // Clear <canvas>
   gl.drawArrays(gl.TRIANGLES, 0, n);  // Draw the triangles
