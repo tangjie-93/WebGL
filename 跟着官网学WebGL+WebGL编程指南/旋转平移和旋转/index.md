@@ -88,6 +88,8 @@ gl.STATIC_DRAW);
 二维的平移、旋转和缩放我们一般用三维矩阵来操作。矩阵主要是有前面的平移、旋转、缩放操作的常规操作来封装推导实现的。矩阵的运算是大学线性代数的知识，大家要是不记得话可以去回忆一下矩阵的乘法等运算知识。
 具体推导过程可以参考下面的文章。
 [https://webglfundamentals.org/webgl/lessons/zh_cn/webgl-2d-matrices.html]
+
+**注意:下面定义的矩阵在进行矩阵运算时都是需要转置的，因为webgl中的矩阵是列主序的。**
 ```js
 const m3 = {
     // x0 = 2x/width-1； y0 = -2y/height + 1;
