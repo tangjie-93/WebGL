@@ -97,12 +97,12 @@ function main() {
     var rect = ev.target.getBoundingClientRect();
     if (rect.left <= x && x < rect.right && rect.top <= y && y < rect.bottom) {
       // If pressed position is inside <canvas>, check if it is above object
-      var x_in_canvas = x - rect.left, y_in_canvas = rect.bottom - y;
-      var picked = check(gl, n, x_in_canvas, y_in_canvas, currentAngle, u_Clicked, viewProjMatrix, u_MvpMatrix);
+      const x_in_canvas = x - rect.left, y_in_canvas = rect.bottom - y;
+      check(gl, n, x_in_canvas, y_in_canvas, currentAngle, u_Clicked, viewProjMatrix, u_MvpMatrix);
     }
   }
 
-  var tick = function() {   // Start drawing
+  const tick = function() {   // Start drawing
     currentAngle = animate(currentAngle);
     draw(gl, n, currentAngle, viewProjMatrix, u_MvpMatrix);
     requestAnimationFrame(tick, canvas);
@@ -164,23 +164,19 @@ function initVertexBuffers(gl) {
 }
 
 function check(gl, n, x, y, currentAngle, u_Clicked, viewProjMatrix, u_MvpMatrix) {
-  var picked = false;
   gl.uniform1i(u_Clicked, 1);  // Pass true to u_Clicked
   draw(gl, n, currentAngle, viewProjMatrix, u_MvpMatrix); // Draw cube with red
-
   // Read pixel at the clicked position
   var pixels = new Uint8Array(4); // Array for storing the pixel value
   gl.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
      // The mouse in on cube if R(pixels[0]) is 255
-  if (pixels[0] == 255){
-    picked = true;
+  if (pixels[0] !== 255){
+    gl.uniform1i(u_Clicked, 0);  // Pass false to u_Clicked(rewrite the cube)
+    draw(gl, n, currentAngle, viewProjMatrix, u_MvpMatrix); // Draw the cube
+    
+  }else{
     alert('The cube was selected! ');
-   } 
-  
-  gl.uniform1i(u_Clicked, 0);  // Pass false to u_Clicked(rewrite the cube)
-  draw(gl, n, currentAngle, viewProjMatrix, u_MvpMatrix); // Draw the cube
-  
-  return picked;
+  }
 }
 
 var g_MvpMatrix = new Matrix4(); // Model view projection matrix

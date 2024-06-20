@@ -34,27 +34,22 @@ canvas.onmousedown = function(ev) {
 + 判断是否点中的是物体。
 ```js
 function check(gl, n, x, y, currentAngle, u_Clicked, viewProjMatrix, u_MvpMatrix) {
-  let picked = false;
   gl.uniform1i(u_Clicked, 1);  // Pass true to u_Clicked
   draw(gl, n, currentAngle, viewProjMatrix, u_MvpMatrix); // Draw cube with red
-
   // Read pixel at the clicked position
-  const pixels = new Uint8Array(4); // Array for storing the pixel value
-  // 读取鼠标点击位置的像素
+  var pixels = new Uint8Array(4); // Array for storing the pixel value
   gl.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
      // The mouse in on cube if R(pixels[0]) is 255
-  if (pixels[0] == 255){
-    picked = true;
+  if (pixels[0] !== 255){
+    gl.uniform1i(u_Clicked, 0);  // Pass false to u_Clicked(rewrite the cube)
+    draw(gl, n, currentAngle, viewProjMatrix, u_MvpMatrix); // Draw the cube
+    
+  }else{
     alert('The cube was selected! ');
-   } 
-  
-  gl.uniform1i(u_Clicked, 0);  // Pass false to u_Clicked(rewrite the cube)
-  draw(gl, n, currentAngle, viewProjMatrix, u_MvpMatrix); // Draw the cube
-  
-  return picked;
+  }
 }
 ```
-**缺点**：上面的方法缺点很明显，如果模型过多就不太使用了。上面的选中物体的原理是在鼠标触发点击事件后，将物体渲染为红色，然后在获取鼠标点的一个像素，判断是否为红色，是红色，则代表选中的是物体。
+**缺点**：上面的方法缺点很明显，如果模型过多就不太好使用了。上面的选中物体的原理是在鼠标触发点击事件后，将物体渲染为红色，然后在获取鼠标点的一个像素，判断是否为红色，是红色，则代表选中的是物体。
 具体`demo` 参考 [`./demo/选中物体.html`](./demo/选中物体.html)
 
 ## 2.选中一个面

@@ -29,7 +29,7 @@ var VSHADER_SOURCE =
   'void main() {\n' +
   '  gl_Position = u_MvpMatrix * a_Position;\n' +
   '  int face = int(a_Face);\n' + // Convert to int
-  '  vec3 color = (face == u_PickedFace) ? vec3(1.0) : a_Color.rgb;\n' +
+  '  vec3 color = (face == u_PickedFace) ? vec3(1.0,0,0) : a_Color.rgb;\n' +// 选中面改为红色
   '  if(u_PickedFace == 0) {\n' + // 将表面编号写入alpha分量
   '    v_Color = vec4(color, a_Face/255.0);\n' +
   '  } else {\n' +
@@ -99,6 +99,7 @@ function main() {
     var x = ev.clientX, y = ev.clientY;
     var rect = ev.target.getBoundingClientRect();
     if (rect.left <= x && x < rect.right && rect.top <= y && y < rect.bottom) {
+      debugger
       // If Clicked position is inside the <canvas>, update the selected surface
       var x_in_canvas = x - rect.left, y_in_canvas = rect.bottom - y;
       var face = checkFace(gl, n, x_in_canvas, y_in_canvas, currentAngle, u_PickedFace, viewProjMatrix, u_MvpMatrix);
@@ -115,13 +116,13 @@ function main() {
   tick();
 }
 function checkFace(gl, n, x, y, currentAngle, u_PickedFace, viewProjMatrix, u_MvpMatrix) {
-  var pixels = new Uint8Array(4); // Array for storing the pixel value
+  // 将表面编号写入alpha值中，以便在着色器中读取
   gl.uniform1i(u_PickedFace, 0);  // Draw by writing surface number into alpha value
-  //
+  // 绘制图形
   draw(gl, n, currentAngle, viewProjMatrix, u_MvpMatrix);
+  const pixels = new Uint8Array(4); // Array for storing the pixel value
   // Read the pixel value of the clicked position. pixels[3] is the surface number
   gl.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-debugger
   return pixels[3];
 }
 
