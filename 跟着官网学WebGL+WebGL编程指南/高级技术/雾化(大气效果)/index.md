@@ -42,20 +42,20 @@ varying vec4 v_Color;
 varying float v_Dist;
 void main() {
      // Calculation of fog factor (factor becomes smaller as it goes further away from eye point)
-    // 根据雾化因子的计算公式计算雾化因子 值在0和之间 在起点是1，在终点是0，
+    // 根据雾化因子的计算公式计算雾化因子 值在0和1之间 在起点是1，在终点是0，
     float fogFactor = clamp((u_FogDist.y - v_Dist) / (u_FogDist.y - u_FogDist.x), 0.0, 1.0);
      // Stronger fog as it gets further: u_FogColor * (1 - fogFactor) + v_Color * fogFactor
      // 根据公式得到片元颜色
-     //  u_FogColor * (1 - fogFactor) + v_Color * fogFactor 更下面的方法等价
-  vec3 color = mix(u_FogColor, vec3(v_Color), fogFactor);
-  gl_FragColor = vec4(color, v_Color.a);
+     //  u_FogColor * (1 - fogFactor) + v_Color * fogFactor 跟下面的方法等价
+    vec3 color = mix(u_FogColor, vec3(v_Color), fogFactor);
+    gl_FragColor = vec4(color, v_Color.a);
 }
 ```
 **`js`中的代码如下所示**
 ```js
 // 雾的颜色
   const fogColor = new Float32Array([0.137, 0.231, 0.423]);
-  // 雾的起点隔和终点与视点之间的距离
+  // 雾的起点和终点与视点之间的距离
   const fogDist = new Float32Array([55, 80]);
   //  视点的位置，在世界坐标系下的位置
   const eye = new Float32Array([25, 65, 35, 1.0]);
@@ -106,6 +106,24 @@ void main() {
   v_Dist = gl_Position.w;
 }
 ```
+在片元着色器中的坐标
+```js
+#ifdef GL_ES
+  precision mediump float;
+  #endif
+  uniform vec3 u_FogColor;// Color of Fog
+  uniform vec2 u_FogDist; // Distance of Fog (starting point, end point)
+  varying vec4 v_Color;
+  varying float v_Dist;
+  void main() {
+     // Calculation of fog factor (factor becomes smaller as it goes further away from eye point)
+    float fogFactor = (u_FogDist.y - v_Dist) / (u_FogDist.y - u_FogDist.x);
+     // Stronger fog as it gets further: u_FogColor * (1 - fogFactor) + v_Color * fogFactor
+    vec3 color = mix(u_FogColor, vec3(v_Color), clamp(fogFactor, 0.0, 1.0));
+    gl_FragColor = vec4(color, v_Color.a);
+  }
+```
+
 [demo`地址](./demo/fog-w.html)
 
 
