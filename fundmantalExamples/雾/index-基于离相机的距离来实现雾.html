@@ -167,8 +167,8 @@ for webgl-utils, m3, m4, and webgl-lessons-ui.
         const fogColor = [0.8, 0.9, 1, 1];
         const settings = {
             fov: 60,
-            fogNear: 3.2,
-            fogFar: 4.7,
+            fogNear: 1,
+            fogFar: 7,
         };
 
         webglLessonsUI.setupUI(document.querySelector("#ui"), settings, [
@@ -185,7 +185,7 @@ for webgl-utils, m3, m4, and webgl-lessons-ui.
         // Draw the scene.
         function drawScene(time) {
             // convert to seconds
-            time *= 0.001;
+            time *= 0.0002;
             // Subtract the previous time from the current time
             const deltaTime = time - then;
             // Remember the current time for the next frame.
@@ -200,8 +200,8 @@ for webgl-utils, m3, m4, and webgl-lessons-ui.
             gl.enable(gl.DEPTH_TEST);
 
             // Animate the rotation
-            modelYRotationRadians += -0.7 * deltaTime;
-            modelXRotationRadians += -0.4 * deltaTime;
+            modelYRotationRadians += -0.05 * deltaTime;
+            modelXRotationRadians += -0.05 * deltaTime;
 
             // Clear the canvas AND the depth buffer.
             gl.clearColor(...fogColor);
@@ -250,7 +250,7 @@ for webgl-utils, m3, m4, and webgl-lessons-ui.
 
             const numCubes = 8;
             for (let i = 0; i < numCubes; ++i) {
-                const worldViewMatrix = m4.yRotate(viewMatrix, i / numCubes * Math.PI * 2);
+                let worldViewMatrix = m4.yRotate(viewMatrix, i / numCubes * Math.PI * 2);
                 worldViewMatrix = m4.translate(worldViewMatrix, 0, 0, -5);
 
                 // Set the matrices.
