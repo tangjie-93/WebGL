@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebGL Skybox</title>
+</head>
+<body>
+    <canvas id="glcanvas" width="800" height="600"></canvas>
+    <script src="../../utils/glMatrix.js"></script>
+</body>
+</html>
+<script>
+    // Vertex shader program
+const vsSource = `
+    attribute vec4 aVertexPosition;
+    varying vec4 vTextureCoord;
+    uniform mat4 uModelViewMatrix;
+    uniform mat4 uProjectionMatrix;
+
+    void main(void) {
+        gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
+        vTextureCoord = aVertexPosition;
+    }
+`;
+
+// Fragment shader program
+const fsSource = `
+    precision mediump float;
+    varying vec4 vTextureCoord;
+    uniform samplerCube uSkybox;
+
+    void main(void) {
+        gl_FragColor = textureCube(uSkybox, vTextureCoord.xyz);
+    }
+`;
+
+// Initialize WebGL
+const canvas = document.getElementById('glcanvas');
+const gl = canvas.getContext('webgl');
+
+// Initialize shaders
+const shaderProgram = initShaderProgram(gl, vsSource, fsSource);
+const programInfo = {
+    program: shaderProgram,
+    attribLocations: {
+        vertexPosition: gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
+    },
+    uniformLocations: {
+        projectionMatrix: gl.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
+        modelViewMatrix: gl.getUniformLocation(shaderProgram, 'uModelViewMatrix'),
+        skybox: gl.getUniformLocation(shaderProgram, 'uSkybox'),
+    },
+};
+
+// Initialize buffers
+const buffers = initBuffers(gl);
+
+// Load and set up the textures
+const cubeTexture = initTexture(gl);
+
+function initBuffers(gl) {
+    const positions = new Float32Array([
+        -1, -1, -1,
+         1, -1, -1,
+         1,  1, -1,
+        -1,  1, -1,
+        -1, -1,  1,
+         1, -1,  1,
+         1,  1,  1,
+        -1,  1,  1,
+    ]);
+
+    const indices = new Uint16Array([
+        0, 1, 2, 0, 2, 3,  // Front face
+        4, 5, 6, 4, 6, 7,  // Back face
+        0, 1, 5, 0, 5, 4,  // Bottom face
+        2, 3, 7, 2, 7, 6,  // Top face
+        0, 3, 7, 0, 7, 4,  // Left face
+        1, 2, 6, 1, 6, 5,  // Right face
+    ]);
+
+    const positionBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+
+    const indexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
+
+    return {
+        position: positionBuffer,
+        indices: indexBuffer,
+    };
+}
+
+function initTexture(gl) {
+    const texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+
+    const faceInfos = [
+            {
+                target: gl.TEXTURE_CUBE_MAP_POSITIVE_X,
+                url: '../../images/pos-x.jpg',
+            },
+            {
+                target: gl.TEXTURE_CUBE_MAP_NEGATIVE_X,
+                url: '../../images/neg-x.jpg',
+            },
+            {
+                target: gl.TEXTURE_CUBE_MAP_POSITIVE_Y,
+                url: '../../images/pos-y.jpg',
+            },
+            {
+                target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Y,
+                url: '../../images/neg-y.jpg',
+            },
+            {
+                target: gl.TEXTURE_CUBE_MAP_POSITIVE_Z,
+                url: '../../images/pos-z.jpg',
+            },
+            {
+                target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Z,
+                url: '../../images/neg-z.jpg',
+            },
+        ];
+
+
+    faceInfos.forEach((faceInfo) => {
+        const { target, url } = faceInfo;
+
+        const level = 0;
+        const internalFormat = gl.RGBA;
+        const width = 512;
+        const height = 512;
+        const format = gl.RGBA;
+        const type = gl.UNSIGNED_BYTE;
+
+        const image = new Image();
+        image.onload = () => {
+            // gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+            gl.texImage2D(target, level, internalFormat, format, type, image);
+            
+        };
+        image.src = url;
+    });
+      Promise.allSettled([
+            loadImg('../../images/1.jpg'),
+            loadImg('../../images/2.jpg'),
+            loadImg('../../images/3.jpg'),
+            loadImg('../../images/4.jpg'),
+            loadImg('../../images/5.jpg'),
+            loadImg('../../images/6.jpg')
+        ]).then(res => {
+            faceInfos.forEach(({ target }, index) => {
+                // Upload the canvas to the cubemap face.
+                const level = 0;
+                const internalFormat = gl.RGBA;
+                const format = gl.RGBA;
+                const type = gl.UNSIGNED_BYTE;
+                gl.texImage2D(target, level, internalFormat, format, type, res[index].value);
+            });
+            gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
+            gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+        })
+    // gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
+    // gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+    return texture;
+}
+
+function drawScene(gl, programInfo, buffers, texture) {
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    const fieldOfView = 45 * Math.PI / 180;
+    const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
+    const zNear = 0.1;
+    const zFar = 100.0;
+    const projectionMatrix = mat4.create();
+
+    mat4.perspective(projectionMatrix, fieldOfView, aspect, zNear, zFar);
+
+    const modelViewMatrix = mat4.create();
+    mat4.translate(modelViewMatrix, modelViewMatrix, [0.0, 0.0, -6.0]);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
+    gl.vertexAttribPointer(
+        programInfo.attribLocations.vertexPosition,
+        3,
+        gl.FLOAT,
+        false,
+        0,
+        0
+    );
+    gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
+
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
+
+    gl.useProgram(programInfo.program);
+
+    gl.uniformMatrix4fv(
+        programInfo.uniformLocations.projectionMatrix,
+        false,
+        projectionMatrix
+    );
+    gl.uniformMatrix4fv(
+        programInfo.uniformLocations.modelViewMatrix,
+        false,
+        modelViewMatrix
+    );
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+    gl.uniform1i(programInfo.uniformLocations.skybox, 0);
+
+    gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0);
+}
+
+function initShaderProgram(gl, vsSource, fsSource) {
+    const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
+    const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
+
+    const shaderProgram = gl.createProgram();
+    gl.attachShader(shaderProgram, vertexShader);
+    gl.attachShader(shaderProgram, fragmentShader);
+    gl.linkProgram(shaderProgram);
+
+    if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+        console.error('Unable to initialize the shader program:', gl.getProgramInfoLog(shaderProgram));
+        return null;
+    }
+
+    return shaderProgram;
+}
+
+function loadShader(gl, type, source) {
+    const shader = gl.createShader(type);
+    gl.shaderSource(shader, source);
+    gl.compileShader(shader);
+
+    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+        console.error('An error occurred compiling the shaders:', gl.getShaderInfoLog(shader));
+        gl.deleteShader(shader);
+        return null;
+    }
+
+    return shader;
+}
+
+function main() {
+    if (!gl) {
+        console.error('WebGL not supported, falling back on experimental-webgl');
+        gl = canvas.getContext('experimental-webgl');
+    }
+
+    if (!gl) {
+        alert('Your browser does not support WebGL');
+        return;
+    }
+
+    drawScene(gl, programInfo, buffers, cubeTexture);
+}
+
+main();
+
+</script>

@@ -156,7 +156,7 @@ for webgl-utils, m3, m4, and webgl-lessons-ui.
             var projectionMatrix =
                 m4.perspective(fieldOfViewRadians, aspect, 1, 2000);
 
-            var cameraPosition = [0, 0, 5];
+            var cameraPosition =  [Math.cos(time * .1), 0, Math.sin(time * .1)];//[0, 0, 5];
             var up = [0, 1, 0];
             var target = [0, 0, 0];
 

@@ -4,16 +4,20 @@
 <head>
     <title>WebGL Skybox</title>
     <style>
-        @import url("../../utils/webgl-tutorials.css");
+        @import url("https://webglfundamentals.org/webgl/resources/webgl-tutorials.css");
 
         body {
             margin: 0;
         }
 
         canvas {
-            width: 100vw;
-            height: 100vh;
+            width: 500px;
+            height: 500px;
             display: block;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
         }
     </style>
 </head>
@@ -39,8 +43,8 @@
           gl_FragColor = textureCube(u_skybox, normalize(v_texCoord));
         }
         </script>
-        
-        
+
+
     <script>
         function createShader(gl, type, source) {
             var shader = gl.createShader(type);

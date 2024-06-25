@@ -247,17 +247,17 @@ for webgl-utils, m3, m4, and webgl-lessons-ui.
                 m4.inverse(viewDirectionProjectionMatrix);
 
             // draw the cube
-            gl.depthFunc(gl.LESS);  // use the default depth test
-            gl.useProgram(envmapProgramInfo.program);
-            webglUtils.setBuffersAndAttributes(gl, envmapProgramInfo, cubeBufferInfo);
-            webglUtils.setUniforms(envmapProgramInfo, {
-                u_world: worldMatrix,
-                u_view: viewMatrix,
-                u_projection: projectionMatrix,
-                u_texture: texture,
-                u_worldCameraPosition: cameraPosition,
-            });
-            webglUtils.drawBufferInfo(gl, cubeBufferInfo);
+            // gl.depthFunc(gl.LESS);  // use the default depth test
+            // gl.useProgram(envmapProgramInfo.program);
+            // webglUtils.setBuffersAndAttributes(gl, envmapProgramInfo, cubeBufferInfo);
+            // webglUtils.setUniforms(envmapProgramInfo, {
+            //     u_world: worldMatrix,
+            //     u_view: viewMatrix,
+            //     u_projection: projectionMatrix,
+            //     u_texture: texture,
+            //     u_worldCameraPosition: cameraPosition,
+            // });
+            // webglUtils.drawBufferInfo(gl, cubeBufferInfo);
 
             // draw the skybox
 
