@@ -93,9 +93,9 @@ See https://webglfundamentals.org/webgl/lessons/webgl-boilerplate.html
 and https://webglfundamentals.org/webgl/lessons/webgl-resizing-the-canvas.html
 for webgl-utils, m3, m4, and webgl-lessons-ui.
 -->
-    <script src="https://webglfundamentals.org/webgl/resources/webgl-utils.js"></script>
-    <script src="https://webglfundamentals.org/webgl/resources/m4.js"></script>
-    <script src="https://webglfundamentals.org/webgl/resources/primitives.js"></script>
+    <script src="../../utils/webgl-utils.js"></script>
+    <script src="../../utils/m4.js"></script>
+    <script src="../../utils/primitives.js"></script>
 </body>
 
 </html>
@@ -128,29 +128,30 @@ for webgl-utils, m3, m4, and webgl-lessons-ui.
         const faceInfos = [
             {
                 target: gl.TEXTURE_CUBE_MAP_POSITIVE_X,
-                url: 'https://webglfundamentals.org/webgl/resources/images/computer-history-museum/pos-x.jpg',
+                url: '../../images/pos-x.jpg',
             },
             {
                 target: gl.TEXTURE_CUBE_MAP_NEGATIVE_X,
-                url: 'https://webglfundamentals.org/webgl/resources/images/computer-history-museum/neg-x.jpg',
+                url: '../../images/neg-x.jpg',
             },
             {
                 target: gl.TEXTURE_CUBE_MAP_POSITIVE_Y,
-                url: 'https://webglfundamentals.org/webgl/resources/images/computer-history-museum/pos-y.jpg',
+                url: '../../images/pos-y.jpg',
             },
             {
                 target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Y,
-                url: 'https://webglfundamentals.org/webgl/resources/images/computer-history-museum/neg-y.jpg',
+                url: '../../images/neg-y.jpg',
             },
             {
                 target: gl.TEXTURE_CUBE_MAP_POSITIVE_Z,
-                url: 'https://webglfundamentals.org/webgl/resources/images/computer-history-museum/pos-z.jpg',
+                url: '../../images/pos-z.jpg',
             },
             {
                 target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Z,
-                url: 'https://webglfundamentals.org/webgl/resources/images/computer-history-museum/neg-z.jpg',
+                url: '../../images/neg-z.jpg',
             },
         ];
+
         faceInfos.forEach((faceInfo) => {
             const { target, url } = faceInfo;
 
