@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
     <style>
-        @import url("https://webglfundamentals.org/webgl/resources/webgl-tutorials.css");
+        @import url("../../utils/webgl-tutorials.css");
 
         body {
             margin: 0;
@@ -47,8 +47,8 @@
          gl_FragColor = textureCube(u_texture, normalize(v_normal));
       }
     </script>
-    <script src="https://webglfundamentals.org/webgl/resources/webgl-utils.js"></script>
-    <script src="https://webglfundamentals.org/webgl/resources/m4.js"></script>
+    <script src="../../utils/webgl-utils.js"></script>
+    <script src="../../utils/m4.js"></script>
 </body>
 
 </html>
@@ -159,27 +159,27 @@
             const faceInfos = [
                 {
                     target: gl.TEXTURE_CUBE_MAP_POSITIVE_X,
-                    url:'../images/1.jpg' ,//'https://webglfundamentals.org/webgl/resources/images/computer-history-museum/pos-x.jpg',
+                    url:'../images/1.jpg' ,//'../../utils/images/computer-history-museum/pos-x.jpg',
                 },
                 {
                     target: gl.TEXTURE_CUBE_MAP_NEGATIVE_X,
-                    url: '../images/2.jpg',//'https://webglfundamentals.org/webgl/resources/images/computer-history-museum/neg-x.jpg',
+                    url: '../images/2.jpg',//'../../utils/images/computer-history-museum/neg-x.jpg',
                 },
                 {
                     target: gl.TEXTURE_CUBE_MAP_POSITIVE_Y,
-                    url:'../images/3.jpg' //'https://webglfundamentals.org/webgl/resources/images/computer-history-museum/pos-y.jpg',
+                    url:'../images/3.jpg' //'../../utils/images/computer-history-museum/pos-y.jpg',
                 },
                 {
                     target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Y,
-                    url: '../images/4.jpg'//'https://webglfundamentals.org/webgl/resources/images/computer-history-museum/neg-y.jpg',
+                    url: '../images/4.jpg'//'../../utils/images/computer-history-museum/neg-y.jpg',
                 },
                 {
                     target: gl.TEXTURE_CUBE_MAP_POSITIVE_Z,
-                    url: '../images/5.jpg'//'https://webglfundamentals.org/webgl/resources/images/computer-history-museum/pos-z.jpg',
+                    url: '../images/5.jpg'//'../../utils/images/computer-history-museum/pos-z.jpg',
                 },
                 {
                     target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Z,
-                    url: '../images/6.jpg'//'https://webglfundamentals.org/webgl/resources/images/computer-history-museum/neg-z.jpg',
+                    url: '../images/6.jpg'//'../../utils/images/computer-history-museum/neg-z.jpg',
                 },
             ];
             const promiseList = []

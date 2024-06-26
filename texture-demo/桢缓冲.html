@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <style>
-        @import url("https://webglfundamentals.org/webgl/resources/webgl-tutorials.css");
+        @import url("../../utils/webgl-tutorials.css");
 
         body {
             margin: 0;
@@ -109,8 +109,8 @@ void main() {
    gl_FragColor = vec4((colorSum / u_kernelWeight).rgb, 1);
 }
 </script>
-<script src="https://webglfundamentals.org/webgl/resources/jquery-1.7.1.min.js"></script>
-<script src="https://webglfundamentals.org/webgl/resources/jquery.tablednd_0_5.js"></script>
+<script src="../../utils/jquery-1.7.1.min.js"></script>
+<script src="../../utils/jquery.tablednd_0_5.js"></script>
 <!--
 for most samples webgl-utils only provides shader compiling/linking and
 canvas resizing because why clutter the examples with code that's the same in every sample.
@@ -118,14 +118,14 @@ See https://webglfundamentals.org/webgl/lessons/webgl-boilerplate.html
 and https://webglfundamentals.org/webgl/lessons/webgl-resizing-the-canvas.html
 for webgl-utils, m3, m4, and webgl-lessons-ui.
 -->
-<script src="https://webglfundamentals.org/webgl/resources/webgl-utils.js"></script>
+<script src="../../utils/webgl-utils.js"></script>
 <script>
     "use strict";
 
     function main() {
         var image = new Image();
         image.crossOrigin='Anonymous'
-        image.src = "https://webglfundamentals.org/webgl/resources/leaves.jpg";  // MUST BE SAME DOMAIN!!!
+        image.src = "../../images/leaves.jpg";  // MUST BE SAME DOMAIN!!!
         image.onload = function () {
             render(image);
         };

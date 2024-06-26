@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <style>
-        @import url("https://webglfundamentals.org/webgl/resources/webgl-tutorials.css");
+        @import url("../../utils/webgl-tutorials.css");
         body {
         margin: 0;
         }
@@ -76,9 +76,9 @@
     and https://webglfundamentals.org/webgl/lessons/webgl-resizing-the-canvas.html
     for webgl-utils, m3, m4, and webgl-lessons-ui.
     -->
-    <script src="https://webglfundamentals.org/webgl/resources/webgl-utils.js"></script>
-    <script src="https://webglfundamentals.org/webgl/resources/m4.js"></script>
-    <script src="https://webglfundamentals.org/webgl/resources/webgl-lessons-ui.js"></script>
+    <script src="../../utils/webgl-utils.js"></script>
+    <script src="../../utils/m4.js"></script>
+    <script src="../../utils/webgl-lessons-ui.js"></script>
 </body>
 
 </html>
@@ -129,7 +129,7 @@ function main() {
                 new Uint8Array([0, 0, 255, 255]));
   // Asynchronously load an image
   var image = new Image();
-  image.src = "https://webglfundamentals.org/webgl/resources/f-texture.png";
+  image.src = "../../images/f-texture.png";
   image.addEventListener('load', function() {
     // Now that the image has loaded make copy it to the texture.
     gl.bindTexture(gl.TEXTURE_2D, texture);

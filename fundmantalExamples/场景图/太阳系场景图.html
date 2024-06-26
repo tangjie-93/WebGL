@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <style>
-        @import url("https://webglfundamentals.org/webgl/resources/webgl-tutorials.css");
+        @import url("../../utils/webgl-tutorials.css");
 
         body {
             margin: 0;
@@ -60,16 +60,16 @@
     and https://webglfundamentals.org/webgl/lessons/webgl-resizing-the-canvas.html
     for webgl-utils, m3, m4, and webgl-lessons-ui.
     -->
-    <script src="https://webglfundamentals.org/webgl/resources/webgl-utils.js"></script>
-    <script src="https://webglfundamentals.org/webgl/resources/m4.js"></script>
-    <script src="https://webglfundamentals.org/webgl/resources/primitives.js"></script>
+    <script src="../../utils/webgl-utils.js"></script>
+    <script src="../../utils/m4.js"></script>
+    <script src="../../utils/primitives.js"></script>
 </body>
 
 </html>
 <script>
     "use strict";
 
-    var Node = function () {
+    const Node = function () {
         this.children = [];
         this.localMatrix = m4.identity();
         this.worldMatrix = m4.identity();

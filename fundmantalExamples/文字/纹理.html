@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <style>
-        @import url("https://webglfundamentals.org/webgl/resources/webgl-tutorials.css");
+        @import url("../../utils/webgl-tutorials.css");
 
         body {
             margin: 0;
@@ -95,9 +95,9 @@ See https://webglfundamentals.org/webgl/lessons/webgl-boilerplate.html
 and https://webglfundamentals.org/webgl/lessons/webgl-resizing-the-canvas.html
 for webgl-utils, m3, m4, and webgl-lessons-ui.
 -->
-    <script src="https://webglfundamentals.org/webgl/resources/webgl-utils.js"></script>
-    <script src="https://webglfundamentals.org/webgl/resources/m4.js"></script>
-    <script src="https://webglfundamentals.org/webgl/resources/primitives.js"></script>
+    <script src="../../utils/webgl-utils.js"></script>
+    <script src="../../utils/m4.js"></script>
+    <script src="../../utils/primitives.js"></script>
 </body>
 
 </html>
@@ -122,23 +122,23 @@ for webgl-utils, m3, m4, and webgl-lessons-ui.
     function main() {
         // Get A WebGL context
         /** @type {HTMLCanvasElement} */
-        var canvas = document.querySelector("#canvas");
-        var gl = canvas.getContext("webgl");
+        const canvas = document.querySelector("#canvas");
+        const gl = canvas.getContext("webgl");
         if (!gl) {
             return;
         }
 
         // Create data for 'F'
-        var fBufferInfo = primitives.create3DFBufferInfo(gl);
+        const fBufferInfo = primitives.create3DFBufferInfo(gl);
         // Create a unit quad for the 'text'
-        var textBufferInfo = primitives.createPlaneBufferInfo(gl, 1, 1, 1, 1, m4.xRotation(Math.PI / 2));
+        const textBufferInfo = primitives.createPlaneBufferInfo(gl, 1, 1, 1, 1, m4.xRotation(Math.PI / 2));
 
         // setup GLSL programs
-        var fProgramInfo = webglUtils.createProgramInfo(gl, ["vertex-shader-3d", "fragment-shader-3d"]);
-        var textProgramInfo = webglUtils.createProgramInfo(gl, ["text-vertex-shader", "text-fragment-shader"]);
+        const fProgramInfo = webglUtils.createProgramInfo(gl, ["vertex-shader-3d", "fragment-shader-3d"]);
+        const textProgramInfo = webglUtils.createProgramInfo(gl, ["text-vertex-shader", "text-fragment-shader"]);
 
         // colors, 1 for each F
-        var colors = [
+        const colors = [
             [0.0, 0.0, 0.0, 1], // 0
             [1.0, 0.0, 0.0, 1], // 1
             [0.0, 1.0, 0.0, 1], // 2
@@ -252,7 +252,7 @@ for webgl-utils, m3, m4, and webgl-lessons-ui.
                 m4.perspective(fieldOfViewRadians, aspect, 1, 2000);
 
             // Compute the camera's matrix using look at.
-            var cameraRadius = 360;
+            var cameraRadius = 1000;
             var cameraPosition = [Math.cos(now) * cameraRadius, 0, Math.sin(now) * cameraRadius];
             var target = [0, 0, 0];
             var up = [0, 1, 0];
@@ -267,10 +267,10 @@ for webgl-utils, m3, m4, and webgl-lessons-ui.
             webglUtils.setBuffersAndAttributes(gl, fProgramInfo, fBufferInfo);
 
             // draw the Fs.
-            var spread = 170;
-            for (var yy = -1; yy <= 1; ++yy) {
-                for (var xx = -2; xx <= 2; ++xx) {
-                    var fViewMatrix = m4.translate(viewMatrix,
+            const spread = 170;
+            for (let yy = -1; yy <= 1; ++yy) {
+                for (let xx = -2; xx <= 2; ++xx) {
+                    let fViewMatrix = m4.translate(viewMatrix,
                         translation[0] + xx * spread, translation[1] + yy * spread, translation[2]);
                     fViewMatrix = m4.xRotate(fViewMatrix, rotation[0]);
                     fViewMatrix = m4.yRotate(fViewMatrix, rotation[1] + yy * xx * 0.2);
