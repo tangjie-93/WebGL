@@ -47,33 +47,33 @@ void main() {
 </script>
     <!-- fragment shader -->
     <script id="envmap-fragment-shader" type="x-shader/x-fragment">
-precision highp float;
+    precision highp float;
 
-// Passed in from the vertex shader.
-varying vec3 v_worldPosition;
-varying vec3 v_worldNormal;
+    // Passed in from the vertex shader.
+    varying vec3 v_worldPosition;
+    varying vec3 v_worldNormal;
 
-// The texture.
-uniform samplerCube u_texture;
+    // The texture.
+    uniform samplerCube u_texture;
 
-// The position of the camera
-uniform vec3 u_worldCameraPosition;
+    // The position of the camera
+    uniform vec3 u_worldCameraPosition;
 
-void main() {
-  vec3 worldNormal = normalize(v_worldNormal);
-  vec3 eyeToSurfaceDir = normalize(v_worldPosition - u_worldCameraPosition);
-  vec3 direction = reflect(eyeToSurfaceDir,worldNormal);
+    void main() {
+        vec3 worldNormal = normalize(v_worldNormal);
+        vec3 eyeToSurfaceDir = normalize(v_worldPosition - u_worldCameraPosition);
+        vec3 direction = reflect(eyeToSurfaceDir,worldNormal);
 
-  gl_FragColor = textureCube(u_texture, direction);
-}
+        gl_FragColor = textureCube(u_texture, direction);
+    }
 </script>
     <script id="skybox-vertex-shader" type="x-shader/x-vertex">
-attribute vec4 a_position;
-varying vec4 v_position;
-void main() {
-  v_position = a_position;
-  gl_Position = vec4(a_position.xy, 1, 1);
-}
+        attribute vec4 a_position;
+        varying vec4 v_position;
+        void main() {
+            v_position = a_position;
+            gl_Position = vec4(a_position.xy, 1, 1);
+        }
 </script>
     <script id="skybox-fragment-shader" type="x-shader/x-fragment">
 precision mediump float;
@@ -250,13 +250,13 @@ for webgl-utils, m3, m4, and webgl-lessons-ui.
             // gl.depthFunc(gl.LESS);  // use the default depth test
             // gl.useProgram(envmapProgramInfo.program);
             // webglUtils.setBuffersAndAttributes(gl, envmapProgramInfo, cubeBufferInfo);
-            // webglUtils.setUniforms(envmapProgramInfo, {
-            //     u_world: worldMatrix,
-            //     u_view: viewMatrix,
-            //     u_projection: projectionMatrix,
-            //     u_texture: texture,
-            //     u_worldCameraPosition: cameraPosition,
-            // });
+            webglUtils.setUniforms(envmapProgramInfo, {
+                u_world: worldMatrix,
+                u_view: viewMatrix,
+                u_projection: projectionMatrix,
+                u_texture: texture,
+                u_worldCameraPosition: cameraPosition,
+            });
             // webglUtils.drawBufferInfo(gl, cubeBufferInfo);
 
             // draw the skybox

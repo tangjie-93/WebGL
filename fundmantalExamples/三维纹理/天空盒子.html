@@ -3,25 +3,19 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <style>
-        @import url("https://webglfundamentals.org/webgl/resources/webgl-tutorials.css");
-
+        @import url("../../utils/webgl-tutorials.css");
         body {
-            margin: 0;
+        margin: 0;
+        }
+        canvas {
+        width: 100vw;
+        height: 100vh;
+        display: block;
         }
 
-        canvas {
-            width: 100vw;
-            height: 100vh;
-            /* display: block;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%); */
-        }
     </style>
 </head>
 
@@ -29,29 +23,27 @@
     <canvas id="canvas"></canvas>
     <!-- vertex shader -->
     <script id="vertex-shader-3d" type="x-shader/x-vertex">
-        attribute vec4 a_position;
-        varying vec4 v_position;
-        void main() {
-            v_position = a_position;
-            gl_Position = a_position;
-            // 确保像素有最远的深度
-            //gl_Position.z = 1.0;
-        }
+    attribute vec4 a_position;
+    varying vec4 v_position;
+    void main() {
+    v_position = a_position;
+        gl_Position = a_position;
+        gl_Position.z = 1.0;
+    }
     </script>
     <!-- fragment shader -->
     <script id="fragment-shader-3d" type="x-shader/x-fragment">
-        precision mediump float;
+    precision mediump float;
 
-        uniform samplerCube u_skybox;
-        uniform mat4 u_viewDirectionProjectionInverse;
+    uniform samplerCube u_skybox;
+    uniform mat4 u_viewDirectionProjectionInverse;
 
-        varying vec4 v_position;
-        void main() {
-            vec4 t = u_viewDirectionProjectionInverse * v_position;
-            // 除以w转换4D到3D
-            gl_FragColor = textureCube(u_skybox, normalize(t.xyz / t.w));
-        }
-    </script><!--
+    varying vec4 v_position;
+    void main() {
+        vec4 t = u_viewDirectionProjectionInverse * v_position;
+        gl_FragColor = textureCube(u_skybox, normalize(t.xyz / t.w));
+    }
+</script><!--
 for most samples webgl-utils only provides shader compiling/linking and
 canvas resizing because why clutter the examples with code that's the same in every sample.
 See https://webglfundamentals.org/webgl/lessons/webgl-boilerplate.html
@@ -64,7 +56,6 @@ for webgl-utils, m3, m4, and webgl-lessons-ui.
 
 </html>
 <script>
-    // 天空盒是一个赋予材质的盒子看起来好像四周全是天空或者看起来像是在很远的地方，包括地平线
     "use strict";
 
     function main() {
@@ -94,6 +85,70 @@ for webgl-utils, m3, m4, and webgl-lessons-ui.
         // Put the positions in the buffer
         setGeometry(gl);
         createTexture(gl);
+
+        function createTexture(gl) {
+            // Create a texture.
+            var texture = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+
+            const faceInfos = [
+                {
+                    target: gl.TEXTURE_CUBE_MAP_POSITIVE_X,
+                    url: '../../images/pos-x.jpg',
+                },
+                {
+                    target: gl.TEXTURE_CUBE_MAP_NEGATIVE_X,
+                    url: '../../images/neg-x.jpg',
+                },
+                {
+                    target: gl.TEXTURE_CUBE_MAP_POSITIVE_Y,
+                    url: '../../images/pos-y.jpg',
+                },
+                {
+                    target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Y,
+                    url: '../../images/neg-y.jpg',
+                },
+                {
+                    target: gl.TEXTURE_CUBE_MAP_POSITIVE_Z,
+                    url: '../../images/pos-z.jpg',
+                },
+                {
+                    target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Z,
+                    url: '../../images/neg-z.jpg',
+                },
+            ];
+            Promise.allSettled(faceInfos.map(item => loadImg(item.url))).then(res => {
+                faceInfos.forEach(({ target }, index) => {
+                    // Upload the canvas to the cubemap face.
+                    const level = 0;
+                    const internalFormat = gl.RGBA;
+                    const format = gl.RGBA;
+                    const type = gl.UNSIGNED_BYTE;
+                    gl.texImage2D(target, level, internalFormat, format, type, res[index].value);
+                });
+                gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
+                gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+            })
+
+        }
+
+        function radToDeg(r) {
+            return r * 180 / Math.PI;
+        }
+
+        function degToRad(d) {
+            return d * Math.PI / 180;
+        }
+        function loadImg(src) {
+            return new Promise((resolve, reject) => {
+                const image = new Image();
+                image.crossOrigin = 'anonymous';
+                image.src = src;
+                image.addEventListener('load', () => {
+                    resolve(image);
+                });
+            })
+        }
 
         var fieldOfViewRadians = degToRad(60);
         var cameraYRotationRadians = degToRad(0);
@@ -142,30 +197,28 @@ for webgl-utils, m3, m4, and webgl-lessons-ui.
             gl.vertexAttribPointer(
                 positionLocation, size, type, normalize, stride, offset);
 
-            // Compute the projection matrix
-            var aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
-            var projectionMatrix =
+            // 计算投影矩阵
+            const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
+            const projectionMatrix =
                 m4.perspective(fieldOfViewRadians, aspect, 1, 2000);
 
-            // camera going in circle 2 units from origin looking at origin
-            var cameraPosition = [-0.1, 0, -0.1];
-            var target = [0, 0, 0];
-            var up = [0, 1, 0];
+            // 相机在以原点为圆心直径2个单位的圆上看向原点
+            const cameraPosition = [Math.cos(time * .1)*3, 0, Math.sin(time * .1)*3];
+            const target = [0, 0, 0];
+            const up = [0, 1, 0];
             // Compute the camera's matrix using look at.
-            var cameraMatrix = m4.lookAt(cameraPosition, target, up);
+            const cameraMatrix = m4.lookAt(cameraPosition, target, up);
 
             // Make a view matrix from the camera matrix.
-            var viewMatrix = m4.inverse(cameraMatrix);
-
-            // We only care about direciton so remove the translation
+            const viewMatrix = m4.inverse(cameraMatrix);
+            // 我们只关心方向所以清除移动的部分
             // viewMatrix[12] = 0;
             // viewMatrix[13] = 0;
             // viewMatrix[14] = 0;
-            // 使用视图投影矩阵在三维空间中投影矩形
-            var viewDirectionProjectionMatrix =
+
+            const viewDirectionProjectionMatrix =
                 m4.multiply(projectionMatrix, viewMatrix);
-            // 视图投影矩阵的逆矩阵，获取相机看相每一个像素的方向，在这里是看向立方体贴图的方向
-            var viewDirectionProjectionInverseMatrix =
+            const viewDirectionProjectionInverseMatrix =
                 m4.inverse(viewDirectionProjectionMatrix);
 
             // Set the uniforms
@@ -177,6 +230,7 @@ for webgl-utils, m3, m4, and webgl-lessons-ui.
             gl.uniform1i(skyboxLocation, 0);
 
             // let our quad pass the depth test at 1.0
+            // 如果传入的深度值小于或等于当前深度缓冲区值，则通过深度测试。
             gl.depthFunc(gl.LEQUAL);
 
             // Draw the geometry.
@@ -184,6 +238,7 @@ for webgl-utils, m3, m4, and webgl-lessons-ui.
 
             requestAnimationFrame(drawScene);
         }
+    
     }
 
     // Fill the buffer with the values that define a quad.
@@ -199,73 +254,7 @@ for webgl-utils, m3, m4, and webgl-lessons-ui.
             ]);
         gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
     }
-    function createTexture(gl) {
-        // Create a texture.
-        var texture = gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
 
-        const faceInfos = [
-            {
-                target: gl.TEXTURE_CUBE_MAP_POSITIVE_X,
-                url: '../../images/pos-x.jpg',
-            },
-            {
-                target: gl.TEXTURE_CUBE_MAP_NEGATIVE_X,
-                url: '../../images/neg-x.jpg',
-            },
-            {
-                target: gl.TEXTURE_CUBE_MAP_POSITIVE_Y,
-                url: '../../images/pos-y.jpg',
-            },
-            {
-                target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Y,
-                url: '../../images/neg-y.jpg',
-            },
-            {
-                target: gl.TEXTURE_CUBE_MAP_POSITIVE_Z,
-                url: '../../images/pos-z.jpg',
-            },
-            {
-                target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Z,
-                url: '../../images/neg-z.jpg',
-            },
-        ];
-        faceInfos.forEach((faceInfo) => {
-            const { target, url } = faceInfo;
-
-            // Upload the canvas to the cubemap face.
-            const level = 0;
-            const internalFormat = gl.RGBA;
-            const width = 512;
-            const height = 512;
-            const format = gl.RGBA;
-            const type = gl.UNSIGNED_BYTE;
-
-            // setup each face so it's immediately renderable
-            gl.texImage2D(target, level, internalFormat, width, height, 0, format, type, null);
-
-            // Asynchronously load an image
-            const image = new Image();
-            image.crossOrigin = '';
-            image.src = url;
-            image.addEventListener('load', function () {
-                // Now that the image has loaded make copy it to the texture.
-                // gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
-                gl.texImage2D(target, level, internalFormat, format, type, image);
-                // gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
-            });
-        });
-        gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
-        gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-    }
-
-    function radToDeg(r) {
-        return r * 180 / Math.PI;
-    }
-
-    function degToRad(d) {
-        return d * Math.PI / 180;
-    }
     main();
 
 </script>
