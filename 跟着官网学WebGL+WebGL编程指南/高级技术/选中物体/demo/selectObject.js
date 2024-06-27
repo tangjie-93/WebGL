@@ -117,9 +117,10 @@ function computeMatrix(translation, xRotation, yRotation) {
 
 function drawObjects(gl, objectsToDraw, overrideProgramInfo) {
     objectsToDraw.forEach(function (object) {
+        // 着色器程序
         const programInfo = overrideProgramInfo || object.programInfo;
         const bufferInfo = object.bufferInfo;
-
+        //使用着色器程序
         gl.useProgram(programInfo.program);
 
         // 设置所有需要的 attributes

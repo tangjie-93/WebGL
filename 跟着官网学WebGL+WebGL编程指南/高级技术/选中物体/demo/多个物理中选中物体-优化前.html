@@ -89,7 +89,7 @@
 
 </html>
 <script type="module">
-  import {createShapes,degToRad,rand,eMod,createTexture,drawObjects,createObjects} from "./selectObject.js"
+  import {degToRad,rand,eMod,createTexture,drawObjects,createObjects} from "./selectObject.js"
   function main() {
     // Get A WebGL context
     /** @type {HTMLCanvasElement} */
@@ -98,24 +98,24 @@
     if (!gl) {
       return;
     }
-
-    const shapes = createShapes(gl);
     // setup GLSL programs
     const programInfo = webglUtils.createProgramInfo(
       gl, ["3d-vertex-shader", "3d-fragment-shader"]);
     const pickingProgramInfo = webglUtils.createProgramInfo(
       gl, ["pick-vertex-shader", "pick-fragment-shader"]);
     const fieldOfViewRadians = degToRad(60);
-    const {objectsToDraw ,objects} = createObjects(gl, viewProjectionMatrix, programInfo);
+    const {objectsToDraw ,objects} = createObjects(gl, undefined, programInfo);
  
-    // Create a texture to render to
+    // 创建用于纹理
     const targetTexture = createTexture(gl);
 
-    // create a depth renderbuffer
+    // 创建并绑定渲染缓冲对象
     const depthBuffer = gl.createRenderbuffer();
     gl.bindRenderbuffer(gl.RENDERBUFFER, depthBuffer);
-
+    // 设置帧缓冲附件尺寸
+    // 纹理和深度渲染缓冲区配置代码，通过调用它来调整它们的尺寸，使之与画布的大小一致。
     function setFramebufferAttachmentSizes(width, height) {
+      debugger
       // 绑定纹理
       gl.bindTexture(gl.TEXTURE_2D, targetTexture);
       // define size and format of level 0
@@ -126,6 +126,7 @@
       const type = gl.UNSIGNED_BYTE;
       const data = null;
       // 用于将图像数据上传到纹理对象的方法
+      //data 是 null，我们不需要提供数据，只需要让WebGL分配一个纹理。
       gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
         width, height, border,
         format, type, data);
@@ -134,16 +135,16 @@
       gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, width, height);
     }
 
-    // Create and bind the framebuffer
+    // 创建并绑定帧缓冲
     const fb = gl.createFramebuffer();
     gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
 
-    // attach the texture as the first color attachment
-    const attachmentPoint = gl.COLOR_ATTACHMENT0;
-    const level = 0;
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, targetTexture, level);
+    // 附加纹理为第一个颜色附件
+    // 将祯缓冲的颜色关联对象指定为一个纹理对象
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, targetTexture, 0);
 
     // make a depth buffer and the same size as the targetTexture
+    //祯缓冲的深度关联对象指定为一个渲染缓冲对象
     gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depthBuffer);
 
     function computeMatrix(viewProjectionMatrix, translation, xRotation, yRotation) {
@@ -172,26 +173,27 @@
 
       if (webglUtils.resizeCanvasToDisplaySize(gl.canvas)) {
         // the canvas was resized, make the framebuffer attachments match
+
         setFramebufferAttachmentSizes(gl.canvas.width, gl.canvas.height);
       }
 
-      // Compute the projection matrix
+      // 创建透视投影矩阵
       const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
       const projectionMatrix =
         m4.perspective(fieldOfViewRadians, aspect, 1, 2000);
 
-      // Compute the camera's matrix using look at.
+      // 创建相机矩阵
       const cameraPosition = [0, 0, 100];
       const target = [0, 0, 0];
       const up = [0, 1, 0];
       const cameraMatrix = m4.lookAt(cameraPosition, target, up);
 
-      // Make a view matrix from the camera matrix.
+      // 根据相机创建视图矩阵
       const viewMatrix = m4.inverse(cameraMatrix);
-
+      // 得到视图投影矩阵
       const viewProjectionMatrix = m4.multiply(projectionMatrix, viewMatrix);
 
-      // Compute the matrices for each object.
+      // 计算每个物体的mvp矩阵
       objects.forEach(function (object) {
         object.uniforms.u_matrix = computeMatrix(
           viewProjectionMatrix,
@@ -200,7 +202,7 @@
           object.yRotationSpeed * time);
       });
 
-      // ------ Draw the objects to the texture --------
+      // ------ 将物体绘制到纹理 --------
 
       gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
       gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
@@ -216,6 +218,7 @@
       // ------ Figure out what pixel is under the mouse and read it
 
       const pixelX = mouseX * gl.canvas.width / gl.canvas.clientWidth;
+      // 纹理坐标的原点在左下角
       const pixelY = gl.canvas.height - mouseY * gl.canvas.height / gl.canvas.clientHeight - 1;
       const data = new Uint8Array(4);
       gl.readPixels(
@@ -235,21 +238,22 @@
         oldPickNdx = -1;
       }
 
-      // highlight object under mouse
+      // 高亮鼠标下的物体
       if (id > 0) {
         const pickNdx = id - 1;
         oldPickNdx = pickNdx;
         const object = objects[pickNdx];
         oldPickColor = object.uniforms.u_colorMult;
-        object.uniforms.u_colorMult = (frameCount & 0x8) ? [1, 0, 0, 1] : [1, 1, 0, 1];
+        // 用于改变颜色
+        object.uniforms.u_colorMult =  [1, 0, 0, 1]; //(frameCount & 0x8) ? [1, 0, 0, 1] : [1, 1, 0, 1];
       }
 
-      // ------ Draw the objects to the canvas
+      // ------ 将物体绘制到canvas
 
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
       gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
-      drawObjects(objectsToDraw);
+      drawObjects(gl,objectsToDraw);
 
       requestAnimationFrame(drawScene);
     }
