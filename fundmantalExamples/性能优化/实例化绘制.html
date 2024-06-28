@@ -25,22 +25,22 @@
     <canvas id="canvas"></canvas>
     <!-- vertex shader -->
     <script id="vertex-shader-3d" type="x-shader/x-vertex">
-attribute vec4 a_position;
-attribute vec4 color;
-attribute mat4 matrix;
-uniform mat4 projection;
-uniform mat4 view;
+    attribute vec4 a_position;
+    attribute vec4 color;
+    attribute mat4 matrix;
+    uniform mat4 projection;
+    uniform mat4 view;
 
-varying vec4 v_color;
+    varying vec4 v_color;
 
-void main() {
-  // Multiply the position by the matrix.
-  gl_Position = projection * view * matrix * a_position;
+    void main() {
+        // Multiply the position by the matrix.
+        gl_Position = projection * view * matrix * a_position;
 
-  // Pass the vertex color to the fragment shader.
-  v_color = color;
-}
-</script>
+        // Pass the vertex color to the fragment shader.
+        v_color = color;
+    }
+    </script>
     <!-- fragment shader -->
     <script id="fragment-shader-3d" type="x-shader/x-fragment">
     precision mediump float;
@@ -51,7 +51,7 @@ void main() {
     void main() {
         gl_FragColor = v_color;
     }
-</script><!--
+    </script><!--
 for most samples webgl-utils only provides shader compiling/linking and
 canvas resizing because why clutter the examples with code that's the same in every sample.
 See https://webglfundamentals.org/webgl/lessons/webgl-boilerplate.html
