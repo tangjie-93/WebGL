@@ -313,8 +313,8 @@ for webgl-utils, m3, m4, and webgl-lessons-ui.
                 var viewX = pos[0] - fromEye[0] * amountToMoveTowardEye;
                 var viewY = pos[1] - fromEye[1] * amountToMoveTowardEye;
                 var viewZ = pos[2] - fromEye[2] * amountToMoveTowardEye;
-                debugger
                 var desiredTextScale = -1 / gl.canvas.height;  // 1x1 pixels
+                // 透视矩阵就是将物体缩放 1 / -Z，以实现近大远小。所以，我们只需缩放 -Z 的期望倍数,让文字保持固定大小。
                 var scale = viewZ * desiredTextScale;
                 var textMatrix = m4.translate(projectionMatrix, viewX, viewY, viewZ);
                 // scale the F to the size we need it.

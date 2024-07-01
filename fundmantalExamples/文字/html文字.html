@@ -262,13 +262,14 @@
             var spread = 100;
             for (var yy = -1; yy <= 1; ++yy) {
                 for (var xx = -2; xx <= 2; ++xx) {
+                    debugger
                     var matrix = m4.translate(projectionMatrix,
                         translation[0] + xx * spread, translation[1] + yy * spread, translation[2]);
                     matrix = m4.xRotate(matrix, rotation[0]);
                     matrix = m4.yRotate(matrix, rotation[1] + yy * xx * 0.2);
                     matrix = m4.zRotate(matrix, rotation[2] + (yy * 3 + xx) * 0.1);
                     matrix = m4.translate(matrix, -50, -50, 0);
-                    matrix = m4.scale(matrix,0.5,0.5,0.5);
+                    matrix = m4.scale(matrix,0.2,0.2,0.2);
 
                     // Set the matrix.
                     gl.uniformMatrix4fv(matrixLocation, false, matrix);
@@ -276,18 +277,20 @@
                     // Draw the geometry.
                     gl.drawArrays(gl.TRIANGLES, 0, 16 * 6);
 
-                    // compute a clipspace position
-                    // using the matrix we computed for the F
+                   // 选择物体空间中 'F' 的一点
+                   //             X  Y  Z  W   
+                   // 使用矩阵计算出这一点的裁剪空间坐标
                     var clipspace = m4.transformVector(matrix, [100, 0, 0, 1]);
+                    const clipspace1 = m4
 
-                    // divide X and Y by W just like the GPU does.
+                    // // 将 X 和 Y 除以 W，和 GPU 一样,得到裁剪坐标
                     clipspace[0] /= clipspace[3];
                     clipspace[1] /= clipspace[3];
 
-                    // convert from clipspace to pixels
+                    // 从裁剪空间转换到像素值
                     var pixelX = (clipspace[0] * 0.5 + 0.5) * gl.canvas.width;
                     var pixelY = (clipspace[1] * -0.5 + 0.5) * gl.canvas.height;
-
+                    //定位 div
                     addDivSet("" + xx + "," + yy, pixelX, pixelY);
                 }
             }
