@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        @import url("../../utils/webgl-tutorials.css");
+
+        body {
+            margin: 0;
+        }
+
+        canvas {
+            width: 100vw;
+            height: 100vh;
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="canvas"></canvas>
+    <div id="uiContainer">
+        <div id="ui">
+        </div>
+    </div>
+    <!-- vertex shader -->
+    <script id="vertex-shader-3d" type="x-shader/x-vertex">
+attribute vec4 a_position;
+attribute vec4 a_color;
+
+uniform mat4 u_matrix;
+
+varying vec4 v_color;
+
+void main() {
+  // Multiply the position by the matrix.
+  gl_Position = u_matrix * a_position;
+
+  // Pass the vertex color to the fragment shader.
+  v_color = a_color;
+}
+</script>
+    <!-- fragment shader -->
+    <script id="fragment-shader-3d" type="x-shader/x-fragment">
+precision mediump float;
+
+// Passed in from the vertex shader.
+varying vec4 v_color;
+
+void main() {
+  gl_FragColor = v_color;
+}
+</script>
+    <script id="solid-color-vertex-shader" type="x-shader/x-vertex">
+    attribute vec4 a_position;
+
+    uniform mat4 u_matrix;
+
+    void main() {
+        // Multiply the position by the matrix.
+        gl_Position = u_matrix * a_position;
+    }
+</script>
+    <!-- fragment shader -->
+    <script id="solid-color-fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+
+uniform vec4 u_color;
+
+void main() {
+  gl_FragColor = u_color;
+}
+</script>
+<script type="shader-source" id="vertexShader">
+    attribute vec4 a_position;
+    uniform mat4 u_matrix;
+    void main(){ 
+        gl_Position = u_matrix * vec4(30,  90,  0,1);
+        gl_PointSize = 10.0; 
+    }
+</script>
+<script type="shader-source" id="fragmentShader">
+    void main(){ 
+        gl_FragColor = vec4(1.0,0.0,0.0,1.0); 
+    }
+</script>
+<!--
+for most samples webgl-utils only provides shader compiling/linking and
+canvas resizing because why clutter the examples with code that's the same in every sample.
+See https://webglfundamentals.org/webgl/lessons/webgl-boilerplate.html
+and https://webglfundamentals.org/webgl/lessons/webgl-resizing-the-canvas.html
+for webgl-utils, m3, m4, and webgl-lessons-ui.
+-->
+    <script src="../../utils/webgl-lessons-ui.js"></script>
+    <script src="../../utils/webgl-utils.js"></script>
+    <script src="../../utils/m4.js"></script>
+    <script src="../../utils/primitives.js"></script>
+</body>
+
+</html>
+<script>
+    'use strict';
+
+    function main() {
+        // 获取webgl上下文
+        /** @type {HTMLCanvasElement} */
+        const canvas = document.querySelector('#canvas');
+        const gl = canvas.getContext('webgl');
+        if (!gl) {
+            return;
+        }
+
+        // 设置 GLSL 程序
+        // 编译着色器、链接程序、查找 locations
+        const vertexColorProgramInfo = webglUtils.createProgramInfo(gl, ['vertex-shader-3d', 'fragment-shader-3d']);
+        const solidColorProgramInfo = webglUtils.createProgramInfo(gl, ['solid-color-vertex-shader', 'solid-color-fragment-shader']);
+
+        // 为一个 3D 的 'F' 创建 buffers 并用数据来填充
+        const fBufferInfo = primitives.create3DFBufferInfo(gl);
+
+        const cameraScale = 20;
+        // 为一个相机 创建 buffers 并用数据来填充
+        const cameraBufferInfo = createCameraBufferInfo(gl, cameraScale);
+        // 为一个裁剪空间 创建 buffers 并用数据来填充
+        const clipspaceCubeBufferInfo = createClipspaceCubeBufferInfo(gl);
+
+
+        const settings = {
+            rotation: 150,  // in degrees
+            cam1FieldOfView: 60,  // in degrees
+            cam1PosX: 0,
+            cam1PosY: 0,
+            cam1PosZ: -200,// 相机位置
+            cam1Near: 30,
+            cam1Far: 500,
+        };
+        webglLessonsUI.setupUI(document.querySelector('#ui'), settings, [
+            { type: 'slider', key: 'rotation', min: 0, max: 360, change: render, precision: 2, step: 0.001, },
+            { type: 'slider', key: 'cam1FieldOfView', min: 1, max: 170, change: render, },
+            { type: 'slider', key: 'cam1PosX', min: -200, max: 200, change: render, },
+            { type: 'slider', key: 'cam1PosY', min: -200, max: 200, change: render, },
+            { type: 'slider', key: 'cam1PosZ', min: -200, max: 200, change: render, },
+            { type: 'slider', key: 'cam1Near', min: 1, max: 500, change: render, },
+            { type: 'slider', key: 'cam1Far', min: 1, max: 500, change: render, },
+        ]);
+
+        function drawScene(projectionMatrix, cameraMatrix, worldMatrix) {
+            // 清除颜色和深度缓冲区.
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+            // 根据相机矩阵创建视图矩阵
+            const viewMatrix = m4.inverse(cameraMatrix);
+
+            let mat = m4.multiply(projectionMatrix, viewMatrix);
+            mat = m4.multiply(mat, worldMatrix);
+
+            gl.useProgram(vertexColorProgramInfo.program);
+            // ------ 绘制F --------
+            // 设置所有需要的 attributes
+            webglUtils.setBuffersAndAttributes(gl, vertexColorProgramInfo, fBufferInfo);
+
+            // 设置所有需要的 uniforms
+            webglUtils.setUniforms(vertexColorProgramInfo, {
+                u_matrix: mat,
+            });
+
+            webglUtils.drawBufferInfo(gl, fBufferInfo);
+        }
+
+        function render() {
+            webglUtils.resizeCanvasToDisplaySize(gl.canvas);
+
+            gl.enable(gl.CULL_FACE);
+            gl.enable(gl.DEPTH_TEST);
+            gl.enable(gl.SCISSOR_TEST);
+
+            // 模型变换矩阵
+            let worldMatrix = m4.yRotation(degToRad(settings.rotation));
+            worldMatrix = m4.xRotate(worldMatrix, degToRad(settings.rotation));
+            // 使 F 围绕着它的原点
+            worldMatrix = m4.translate(worldMatrix, -35, -75, -5);
+
+
+            const { width, height } = gl.canvas;
+            // 我们要把视角分成 2 个
+            const effectiveWidth = width / 2;
+            const aspect = effectiveWidth / height;
+            const near = 1;
+            const far = 2000;
+            //--------绘制左边的F模型------
+            // 透视投影矩阵
+            const perspectiveProjectionMatrix =
+                m4.perspective(degToRad(settings.cam1FieldOfView),
+                    aspect,
+                    settings.cam1Near,
+                    settings.cam1Far);
+
+            // 使用 look at 计算相机的矩阵
+            const cameraPosition = [settings.cam1PosX, settings.cam1PosY, settings.cam1PosZ,];
+            const target = [0, 0, 0];
+            const up = [0, 1, 0];
+            const cameraMatrix = m4.lookAt(cameraPosition, target, up);
+
+            const leftWidth = effectiveWidth;
+            //  使用透视相机绘制在左边
+            gl.viewport(0, 0, leftWidth, height);
+            gl.scissor(0, 0, leftWidth, height);
+            gl.clearColor(1, 0.8, 0.8, 1);
+
+            drawScene(perspectiveProjectionMatrix, cameraMatrix, worldMatrix);
+
+            //--------绘制右边的F模型------
+            const perspectiveProjectionMatrix2 =
+                m4.perspective(degToRad(60), aspect, near, far);
+
+            // 使用 look at 计算相机的矩阵
+            const cameraPosition2 = [-600, 400, -400];
+            const target2 = [0, 0, 0];
+            const cameraMatrix2 = m4.lookAt(cameraPosition2, target2, up);
+
+            // 使用透视相机绘制在右边
+            const rightWidth = width - leftWidth;
+            gl.viewport(leftWidth, 0, rightWidth, height);
+            gl.scissor(leftWidth, 0, rightWidth, height);
+            gl.clearColor(0.8, 0.8, 1, 1);
+
+            drawScene(perspectiveProjectionMatrix2, cameraMatrix2, worldMatrix);
+            // 绘制相机所在的位置
+            drawPoint(gl,perspectiveProjectionMatrix2, cameraMatrix2, worldMatrix);
+            // 绘制代表第一个相机的物体
+            drawFirstCameraObjects({ gl, cameraMatrix2, cameraMatrix, perspectiveProjectionMatrix, perspectiveProjectionMatrix2, solidColorProgramInfo, cameraBufferInfo, clipspaceCubeBufferInfo });
+        }
+        render();
+    }
+    // 绘制代表第一个相机的物体 
+    function drawFirstCameraObjects({ gl, cameraMatrix2, cameraMatrix, perspectiveProjectionMatrix, perspectiveProjectionMatrix2, solidColorProgramInfo, cameraBufferInfo, clipspaceCubeBufferInfo }) {
+        // 从第 2 个相机矩阵中创建一个视图矩阵
+        const viewMatrix = m4.inverse(cameraMatrix2);
+
+        let mat = m4.multiply(perspectiveProjectionMatrix2, viewMatrix);
+        // 使用第一个相机的矩阵作为表示相机的物体的世界矩阵
+        // 那么表示立方体和锥体的坐标则是相对于第一个相机的坐标系而言的
+        mat = m4.multiply(mat, cameraMatrix);
+
+        gl.useProgram(solidColorProgramInfo.program);
+        // 绘制表示相机的立方体和锥体
+        drawObjects(gl, mat, solidColorProgramInfo, cameraBufferInfo);
+
+        // m4.inverse(perspectiveProjectionMatrix) 返回的是透视投影矩阵的逆矩阵
+        // 投影矩阵的逆矩阵用于将裁剪空间中的点转换回相机空间
+        // 投影矩阵的逆矩阵总是会把我们传入的 +1 到 -1 立方体进行适当的扭曲。
+        mat = m4.multiply(mat, m4.inverse(perspectiveProjectionMatrix));
+        // 绘制视锥体
+        drawObjects(gl, mat, solidColorProgramInfo, clipspaceCubeBufferInfo);
+    }
+
+    function drawObjects(gl, mat, solidColorProgramInfo, cameraBufferInfo) {
+        // ------  绘制表示相机的物体 --------
+        // 设置所有需要的 attributes
+        webglUtils.setBuffersAndAttributes(gl, solidColorProgramInfo, cameraBufferInfo);
+
+        // 设置 uniforms
+        webglUtils.setUniforms(solidColorProgramInfo, {
+            u_matrix: mat,
+            u_color: [0, 0, 0, 1],
+        });
+
+        webglUtils.drawBufferInfo(gl, cameraBufferInfo, gl.LINES);
+    }
+    function degToRad(d) {
+        return d * Math.PI / 180;
+    }
+
+    //创建裁剪空间立方体的缓存信息
+    function createClipspaceCubeBufferInfo(gl) {
+        // 首先，让我们添加一个立方体。它的范围是 -1 到 1，
+        const positions = [
+            -1, -1, -1,  // 立方体的顶点
+            1, -1, -1,
+            -1, 1, -1,
+            1, 1, -1,
+            -1, -1, 1,
+            1, -1, 1,
+            -1, 1, 1,
+            1, 1, 1,
+        ];
+        const indices = [
+            0, 1, 1, 3, 3, 2, 2, 0, // 立方体的索引
+            4, 5, 5, 7, 7, 6, 6, 4,
+            0, 4, 1, 5, 3, 7, 2, 6,
+        ];
+        return webglUtils.createBufferInfoFromArrays(gl, {
+            position: positions,
+            indices,
+        });
+    }
+
+    // 为相机创建几何体
+    function createCameraBufferInfo(gl, scale = 1) {
+        // 首先，让我们添加一个立方体。它的范围是 1 到 3，
+        // 因为相机看向的是 -Z 方向，所以我们想要相机在 Z = 0 处开始。
+        // 我们会把一个圆锥放到该立方体的前面，
+        // 且该圆锥的开口方向朝 -Z 方向。
+        const positions = [
+            -1, -1, 1,  // 立方体的顶点
+            1, -1, 1,
+            -1, 1, 1,
+            1, 1, 1,
+            -1, -1, 3,
+            1, -1, 3,
+            -1, 1, 3,
+            1, 1, 3,
+            0, 0, 1,  // 圆锥的尖头
+        ];
+        const indices = [
+            0, 1, 1, 3, 3, 2, 2, 0, // 立方体的索引
+            4, 5, 5, 7, 7, 6, 6, 4,
+            0, 4, 1, 5, 3, 7, 2, 6,
+        ];
+        // 添加圆锥的片段
+        const numSegments = 6;
+        const coneBaseIndex = positions.length / 3;
+        // 圆锥的尖头索引
+        const coneTipIndex = coneBaseIndex - 1;
+        for (let i = 0; i < numSegments; ++i) {
+            const u = i / numSegments;
+            const angle = u * Math.PI * 2;
+            const x = Math.cos(angle);
+            const y = Math.sin(angle);
+            // 圆锥的的圆设置在z=0处
+            positions.push(x, y, 0);
+            // 从圆锥尖头到圆锥边缘的线段
+            indices.push(coneTipIndex, coneBaseIndex + i);
+            // 从圆锥边缘一点到圆锥边缘下一点的线段
+            indices.push(coneBaseIndex + i, coneBaseIndex + (i + 1) % numSegments);
+        }
+        // 缩放顶点，为了适配F模型的大小
+        positions.forEach((v, ndx) => {
+            positions[ndx] *= scale;
+        });
+        return webglUtils.createBufferInfoFromArrays(gl, {
+            position: positions,
+            indices,
+        });
+    }
+
+    let program;
+    // 主要用于模拟
+    function drawPoint(gl,projectionMatrix, cameraMatrix, worldMatrix) {
+        if(!program){
+            program = initShader(gl);
+        }
+        const u_matrix = gl.getUniformLocation(program, 'u_matrix');
+        const viewMatrix = m4.inverse(cameraMatrix);
+        let mat = m4.multiply(projectionMatrix, viewMatrix);
+            // mat = m4.multiply(mat, worldMatrix);
+            gl.uniformMatrix4fv(u_matrix, false, mat);
+
+        gl.useProgram(program);
+        //绘制一个点。
+        gl.drawArrays(gl.POINTS, 0, 1);
+        //声明初始化着色器函数
+        function initShader(gl) {
+            //创建定点着色器
+            const vertexShaderSource = document.querySelector('#vertexShader').innerText;
+            //创建片元着色器
+            const fragmentShaderSource = document.querySelector('#fragmentShader').innerText;
+            //创建顶点着色器对象
+            const vertexShader = gl.createShader(gl.VERTEX_SHADER);
+            //创建片元着色器对象
+            const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+            //引入顶点、片元着色器源代码
+            gl.shaderSource(vertexShader, vertexShaderSource);
+            gl.shaderSource(fragmentShader, fragmentShaderSource);
+            //编译顶点、片元着色器
+            gl.compileShader(vertexShader);
+            gl.compileShader(fragmentShader);
+
+            //创建程序对象program
+            const program = gl.createProgram();
+            //附着顶点着色器和片元着色器到program
+            gl.attachShader(program, vertexShader);
+            gl.attachShader(program, fragmentShader);
+            //链接program
+            gl.linkProgram(program);
+            //使用program
+            gl.useProgram(program);
+            //返回程序program对象
+            return program;
+        }
+
+    }
+
+
+    main();
+
+</script>
