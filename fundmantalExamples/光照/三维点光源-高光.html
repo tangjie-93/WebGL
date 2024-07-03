@@ -288,10 +288,10 @@ function main() {
     gl.uniform1f(shininessLocation, shininess);
 
     // set the light color
-    gl.uniform3fv(lightColorLocation, m4.normalize([1, 0.6, 0.6]));  // red light
+    gl.uniform3fv(lightColorLocation, m4.normalize([1, 0.6, 0.6]));  // green light
 
     // set the specular color
-    gl.uniform3fv(specularColorLocation, m4.normalize([1, 0.2, 0.2]));  // red light
+    gl.uniform3fv(specularColorLocation, m4.normalize([1.0, 0.2, 0.2]));  // red light
 
     // Draw the geometry.
     var primitiveType = gl.TRIANGLES;
