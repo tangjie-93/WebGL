@@ -68,11 +68,35 @@
 </html>
 <script>
     "use strict";
+    class TRS  {
+        constructor() {
+            this.translation = [0, 0, 0];
+            this.rotation = [0, 0, 0];
+            this.scale = [1, 1, 1];
+        }
+        getMatrix(dst){
+            dst = dst || new Float32Array(16);
+            const t = this.translation;
+            const r = this.rotation;
+            const s = this.scale;
+            
+            // 通过平移，旋转和缩放计算矩阵
+            m4.translation(t[0], t[1], t[2], dst);
+            m4.xRotate(dst, r[0], dst);
+            m4.yRotate(dst, r[1], dst);
+            m4.zRotate(dst, r[2], dst);
+            m4.scale(dst, s[0], s[1], s[2], dst);
+            return dst;
+        }
+    }; 
+
+
     class Node {
-        constructor(){
+        constructor(source){
             this.children = [];
             this.localMatrix = m4.identity();
             this.worldMatrix = m4.identity();
+            this.source = source;
         }
         setParent(parent){
              // remove us from our parent
@@ -132,17 +156,21 @@
         const fieldOfViewRadians = degToRad(60);
         const cameraHeight = 50;
         // 太阳系节点
-        const solarSystemNode = new Node();
+        const solarSystemTRS = new TRS();
+        const solarSystemNode = new Node(solarSystemTRS);
         // 地球轨道节点
-        const earthOrbitNode = new Node();
+        const earthOrbitTRS = new TRS();
+        const earthOrbitNode = new Node(earthOrbitTRS);
         // 沿x轴平移100px
-        earthOrbitNode.localMatrix = m4.translation(100, 0, 0);  // earth orbit 100 units from the sun
+        earthOrbitNode.source.translation = [100, 0, 0];  // earth orbit 100 units from the sun
         // 月球轨道节点
-        const moonOrbitNode = new Node();
-        moonOrbitNode.localMatrix = m4.translation(30, 0, 0);  // moon 30 units from the earth
+        const moonOrbitTRS = new TRS();
+        const moonOrbitNode = new Node(moonOrbitTRS);
+        moonOrbitNode.source.translation = [30, 0, 0];  // moon 30 units from the earth
         // 太阳节点
-        const sunNode = new Node();
-        sunNode.localMatrix = m4.scaling(3, 3, 3);  // sun a the center
+        const sunTRS = new TRS();
+        const sunNode = new Node(sunTRS);
+        sunNode.source.scale = [3, 3, 3];  // sun a the center
         sunNode.drawInfo = {
             uniforms: {
                 u_colorOffset: [0.6, 0.6, 0, 1], // yellow
@@ -152,8 +180,9 @@
             bufferInfo: sphereBufferInfo,
         };
         // 地球节点
-        const earthNode = new Node();
-        earthNode.localMatrix = m4.scaling(2, 2, 2);   // make the earth twice as large
+        const earthTRS = new TRS
+        const earthNode = new Node(earthTRS);
+        earthNode.source.scale = [2,2,2];   // make the earth twice as large
         earthNode.drawInfo = {
             uniforms: {
                 u_colorOffset: [0.2, 0.5, 0.8, 1],  // blue-green
@@ -163,8 +192,9 @@
             bufferInfo: sphereBufferInfo,
         };
         // 月亮节点
-        const moonNode = new Node();
-        moonNode.localMatrix = m4.scaling(0.4, 0.4, 0.4);
+        const moonTRS = new TRS();
+        const moonNode = new Node(moonTRS);
+        moonNode.source.scale = [0.4, 0.4, 0.4];
         moonNode.drawInfo = {
             uniforms: {
                 u_colorOffset: [0.6, 0.6, 0.6, 1],  // gray
@@ -228,13 +258,17 @@
 
             // 更新物体的本地矩阵
             // 地球公转
-            m4.multiply(m4.yRotation(0.01), earthOrbitNode.localMatrix, earthOrbitNode.localMatrix);
+            earthOrbitNode.source.rotation[1] += 0.01;
+            // m4.multiply(m4.yRotation(0.01), earthOrbitNode.localMatrix, earthOrbitNode.localMatrix);
             // 月球公转
-            m4.multiply(m4.yRotation(0.01), moonOrbitNode.localMatrix, moonOrbitNode.localMatrix);
-            // spin the earth
-            m4.multiply(m4.yRotation(0.001), earthNode.localMatrix, earthNode.localMatrix);
-            // spin the moon
-            m4.multiply(m4.yRotation(-0.01), moonNode.localMatrix, moonNode.localMatrix);
+            moonOrbitNode.source.rotation[1] += 0.01;
+            // m4.multiply(m4.yRotation(0.01), moonOrbitNode.localMatrix, moonOrbitNode.localMatrix);
+            // 地球自转
+            earthNode.source.rotation[1] += 0.01;
+            // m4.multiply(m4.yRotation(0.001), earthNode.localMatrix, earthNode.localMatrix);
+            // 月球自转
+            moonNode.source.rotation[1] -= 0.01;
+            // m4.multiply(m4.yRotation(-0.01), moonNode.localMatrix, moonNode.localMatrix);
 
             // Update all world matrices in the scene graph
             // 更新场景图中的所有物体的世界矩阵
