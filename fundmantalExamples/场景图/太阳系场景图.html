@@ -216,7 +216,7 @@
             const projectionMatrix =
                 m4.perspective(fieldOfViewRadians, aspect, 1, 2000);
 
-            const cameraPosition = [0, -200, 0];
+            const cameraPosition = [0, -300, 0];
             const target = [0, 0, 0];
             const up = [0, 0, 1];
             // 相机矩阵
@@ -227,14 +227,16 @@
             const viewProjectionMatrix = m4.multiply(projectionMatrix, viewMatrix);
 
             // 更新物体的本地矩阵
+            // 太阳公转
+            // m4.multiply(m4.yRotation(0.01), solarSystemNode.localMatrix, solarSystemNode.localMatrix);
             // 地球公转
             m4.multiply(m4.yRotation(0.01), earthOrbitNode.localMatrix, earthOrbitNode.localMatrix);
             // 月球公转
             m4.multiply(m4.yRotation(0.01), moonOrbitNode.localMatrix, moonOrbitNode.localMatrix);
-            // spin the earth
-            m4.multiply(m4.yRotation(0.001), earthNode.localMatrix, earthNode.localMatrix);
-            // spin the moon
-            m4.multiply(m4.yRotation(-0.01), moonNode.localMatrix, moonNode.localMatrix);
+            // // 旋转地球
+            // m4.multiply(m4.yRotation(0.001), earthNode.localMatrix, earthNode.localMatrix);
+            // // 旋转月亮
+            // m4.multiply(m4.yRotation(-0.01), moonNode.localMatrix, moonNode.localMatrix);
 
             // Update all world matrices in the scene graph
             // 更新场景图中的所有物体的世界矩阵

@@ -166,7 +166,7 @@
         // 月球轨道节点
         const moonOrbitTRS = new TRS();
         const moonOrbitNode = new Node(moonOrbitTRS);
-        moonOrbitNode.source.translation = [30, 0, 0];  // moon 30 units from the earth
+        moonOrbitNode.source.translation = [50, 0, 0];  // moon 30 units from the earth
         // 太阳节点
         const sunTRS = new TRS();
         const sunNode = new Node(sunTRS);
@@ -194,11 +194,11 @@
         // 月亮节点
         const moonTRS = new TRS();
         const moonNode = new Node(moonTRS);
-        moonNode.source.scale = [0.4, 0.4, 0.4];
+        // moonNode.source.scale = [0.4, 0.4, 0.4];
         moonNode.drawInfo = {
             uniforms: {
                 u_colorOffset: [0.6, 0.6, 0.6, 1],  // gray
-                u_colorMult: [1, 0.1, 0.1, 1],
+                u_colorMult: [0.8, 0.5, 0.2, 1],
             },
             programInfo: programInfo,
             bufferInfo: sphereBufferInfo,
@@ -246,7 +246,7 @@
             const projectionMatrix =
                 m4.perspective(fieldOfViewRadians, aspect, 1, 2000);
 
-            const cameraPosition = [0, -200, 0];
+            const cameraPosition = [0, -300, 0];
             const target = [0, 0, 0];
             const up = [0, 0, 1];
             // 相机矩阵
@@ -257,18 +257,21 @@
             const viewProjectionMatrix = m4.multiply(projectionMatrix, viewMatrix);
 
             // 更新物体的本地矩阵
-            // 地球公转
+            // 太阳系旋转
+            solarSystemNode.source.rotation[1] += 0.01;
+            // 地球坐标系旋转
             earthOrbitNode.source.rotation[1] += 0.01;
             // m4.multiply(m4.yRotation(0.01), earthOrbitNode.localMatrix, earthOrbitNode.localMatrix);
-            // 月球公转
-            moonOrbitNode.source.rotation[1] += 0.01;
+            // 地球坐标系旋转
+            // moonOrbitNode.source.rotation[1] += 0.01;
             // m4.multiply(m4.yRotation(0.01), moonOrbitNode.localMatrix, moonOrbitNode.localMatrix);
             // 地球自转
             earthNode.source.rotation[1] += 0.01;
             // m4.multiply(m4.yRotation(0.001), earthNode.localMatrix, earthNode.localMatrix);
             // 月球自转
-            moonNode.source.rotation[1] -= 0.01;
+            moonNode.source.rotation[1] += 0.01;
             // m4.multiply(m4.yRotation(-0.01), moonNode.localMatrix, moonNode.localMatrix);
+
 
             // Update all world matrices in the scene graph
             // 更新场景图中的所有物体的世界矩阵
