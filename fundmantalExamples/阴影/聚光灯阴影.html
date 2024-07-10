@@ -78,7 +78,7 @@ void main() {
 }
 </script>
     <!-- fragment shader -->
-    <script id="fragment-shader-3d" type="x-shader/x-fragment">
+    <script id="fragment-shader-3d" type="x-shader/x-fragment" type="GLSL">
 precision mediump float;
 
 // Passed in from the vertex shader.
@@ -96,7 +96,21 @@ uniform float u_shininess;
 uniform vec3 u_lightDirection;
 uniform float u_innerLimit;          // in dot space
 uniform float u_outerLimit;          // in dot space
-
+uniform vec2 u_projectedTextureSize;
+float shadowPCF(vec3 projectedTexcoord) {
+    float shadow = 0.0;
+    float texelSize = 1.0 / u_projectedTextureSize.x;;
+    float bias = u_bias;
+    
+    for (int x = 0; x <= 1; ++x) {
+      for (int y = 0; y <= 1; ++y) {
+        vec2 offset = vec2(float(x), float(y)) * texelSize;
+        float projectedDepth = texture2D(u_projectedTexture, projectedTexcoord.xy + offset).r;
+        shadow += projectedTexcoord.z > projectedDepth + bias ? 1.0 : 0.0;
+      }
+    }
+    return shadow / 4.0;
+  }
 void main() {
   // because v_normal is a varying it's interpolated
   // so it will not be a unit vector. Normalizing it
@@ -114,6 +128,7 @@ void main() {
   float light = inLight * dot(normal, surfaceToLightDirection);
   float specular = inLight * pow(dot(normal, halfVector), u_shininess);
 
+
   vec3 projectedTexcoord = v_projectedTexcoord.xyz / v_projectedTexcoord.w;
   float currentDepth = projectedTexcoord.z + u_bias;
 
@@ -126,7 +141,7 @@ void main() {
   // the 'r' channel has the depth values
   float projectedDepth = texture2D(u_projectedTexture, projectedTexcoord.xy).r;
   float shadowLight = (inRange && projectedDepth <= currentDepth) ? 0.0 : 1.0;
-
+  shadowLight *=  shadowPCF(projectedTexcoord);
   vec4 texColor = texture2D(u_texture, v_texcoord) * u_colorMult;
   gl_FragColor = vec4(
       texColor.rgb * light * shadowLight +
@@ -262,7 +277,7 @@ for webgl-utils, m3, m4, and webgl-lessons-ui.
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
         const depthTexture = gl.createTexture();
-        const depthTextureSize = 512;
+        const depthTextureSize = 16384;
         gl.bindTexture(gl.TEXTURE_2D, depthTexture);
         gl.texImage2D(
             gl.TEXTURE_2D,      // target
@@ -372,7 +387,8 @@ for webgl-utils, m3, m4, and webgl-lessons-ui.
             u_texture: checkerboardTexture,
             u_world: m4.translation(3, 1, 0),
         };
-
+        const shadowMapSizeLocation = gl.getUniformLocation(textureProgramInfo.program, "u_projectedTextureSize");
+       
         function drawScene(
             projectionMatrix,
             cameraMatrix,
@@ -383,6 +399,9 @@ for webgl-utils, m3, m4, and webgl-lessons-ui.
             const viewMatrix = m4.inverse(cameraMatrix);
 
             gl.useProgram(programInfo.program);
+            if(programInfo.program===textureProgramInfo.program){
+                gl.uniform2f(shadowMapSizeLocation, 8192, 8192);
+            }
 
             // set uniforms that are the same for both the sphere and plane
             // note: any values with no corresponding uniform in the shader
